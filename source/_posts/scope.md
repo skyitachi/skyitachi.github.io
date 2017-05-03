@@ -40,9 +40,21 @@ function outerScope() {
 outerScope();
 // current scope: sameVar1 is  2
 // current scope: sameVar2 is  1
+
+//另一个例子
+const f1 = function () {
+  console.log(outVar);
+};
+
+let outVar = 1;
+f1(); // 1 why
+
 ```
+> 只有在函数声明的时候才会遵循lexical scope的规则, 如果是函数表达式则取决于调用的时机
+
 #### 不同类型的作用域(如何创建scope)
 - 函数作用域
+
 > 属于这个函数的全部变量都可以在整个函数的范围内使用及复用
 > javascript 每个函数都会创建一个scope
 
@@ -54,6 +66,7 @@ function fScope() {
 
 fScope();
 console.log(aStr); // ReferenceError: aStr is not defined
+
 ```
 
 - 块级作用域({...})
@@ -82,3 +95,43 @@ var foo = true;
 console.log(foo); // false
 console.log(bar); // bar
 ```
+
+#### 变量提升
+> 变量和函数的所有声明多会在任何代码被执行前首先被处理（编译器找到这些变量与合适的作用域关联）
+
+```javascript
+function hoisting() {
+  console.log(a);
+  var a = 1;
+  console.log(a);
+}
+hoisting();
+
+```
+**又是let**
+
+```javascript
+function hoisting() {
+    console.log(a); // 第一个let之上的区域叫做`temporal dead zone`
+    let a = 1;
+    console.log(a);
+}
+hoisting(); // ReferenceError
+```
+**函数声明的优先级会高于变量声明**
+
+```javascript
+foo(); // in the function
+
+var foo = 1;
+
+function foo() {
+  console.log("in the function");
+}
+```
+
+#### 总结
+- 需要区分函数声明和函数表达式
+- 关于块级作用域，try{} catch(err) {/*这里是块级作用域*/}，更多参考:《你不知道的javascript》上卷中3.4.2节
+- 使用`let`，`const`是最佳实践
+- 尽量不要写有提升的代码（声明尽量提前）
