@@ -14,14 +14,14 @@ tags: service worker, push, fetch
 
 #### service worker的lifecycle
 > html5rocks中的一篇[tutorials](http://www.html5rocks.com/en/tutorials/service-worker/introduction/)
-![service worker lifecycle](https://www.skyitachi.cn/oss/pic/sw-lifecycle-small.png)
+![service worker lifecycle](https://skyitachi.cn/images/sw-lifecycle-small.png)
 
 service worker主要状态有6种parsed, installing, installed, activating, activated, 和redundant.
 > 引用[service worker state explained](https://bitsofco.de/the-service-worker-lifecycle/)
 ![service worker state](https://bitsofco.de/content/images/2016/07/Lifecycle-3.png)
 
 > [service worker interface](https://w3c.github.io/ServiceWorker/spec/service_worker/index.html#service-worker-interface)
-![service worker interface](https://www.skyitachi.cn/oss/pic/sw-interface.png)
+![service worker interface](https://skyitachi.cn/images/sw-interface.png)
 
 #### ServiceWorker和ServiceWorkerRegistration状态说明
 - ServiceWorker本身有6种状态，而ServiceWorkerRegistration也有`installing`,`waiting`, `active`这三种状态
@@ -106,7 +106,7 @@ this.addEventListener("fetch", function (event) {
 > chrome中push依赖gcm，点击[如何申请](https://developers.google.com/web/fundamentals/getting-started/push-notifications/step-04?hl=en), 同时需要配置manifest.json，此文中也有说明，当然得自备梯子
 
 首先简要看下push的整个流程
-![push.png](https://www.skyitachi.cn/oss/pic/sw-push.png)
+![push.png](https://skyitachi.cn/images/sw-push.png)
 图中黑色线代表初始化设置阶段，起点是service worker的registration,
 蓝色线代表服务端发送push事件的整个流程, 起点是your server
 > 下文中假设已经申请好gcm相关和设置好manifest
