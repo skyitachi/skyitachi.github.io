@@ -8,3 +8,4 @@ public/
 _config.yml
 .idea
 .history
+package-lock.json
