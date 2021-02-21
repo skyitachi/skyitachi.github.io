@@ -1,0 +1,255 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>浅谈 this | skyitachi&#39;s blog</title>
+  <meta name="author" content="skyitachi">
+  
+  <meta name="description" content="一定要有输出">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="浅谈 this"/>
+  <meta property="og:site_name" content="skyitachi&#39;s blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">  
+  <link rel="stylesheet" href="/css/sidenav.css" media="screen" type="text/css">  
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="skyitachi's blog" type="application/atom+xml">
+</head>
+
+<body id="body" data-spy="scroll" data-target=".toc">
+  <div class="container" id="container">
+	<div class="content">
+	  <div class="page-header">		
+  <h1><a class="brand" href="/">skyitachi&#39;s blog</a><span class="split"></span><span class="title">浅谈 this</span><span class="date" id="title-date"><i class="fa fa-clock-o"></i> 2017-06-13</span></h1>
+</div>		
+
+<div class="row page">
+  <!-- cols -->	
+  
+  
+
+  
+	<div class="col-md-12">
+	  
+
+	  <!-- content -->
+	  <h4 id="本文宗旨"><a href="#本文宗旨" class="headerlink" title="本文宗旨"></a>本文宗旨</h4><ul>
+<li>说明<code>this</code>在各种上下文中是什么</li>
+<li>介绍改变<code>this</code>的方法<blockquote>
+<p>本文代码均是在node.js v8.0.0上实验的, v8 version: 5.8.283.41, 本文也不考虑eval，with的动态函数, 同样在也不会考虑vm.runInNewContext等相关函数<br>所有代码均在<strong>非严格模式</strong>下运行, 一般来讲严格模式会影响隐式绑定</p>
+</blockquote>
+</li>
+</ul>
+<h4 id="各种情况下的this"><a href="#各种情况下的this" class="headerlink" title="各种情况下的this"></a>各种情况下的this</h4><ul>
+<li><p>全局直接使用this</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// index.js</span></span><br><span class="line"><span class="built_in">console</span>.log(<span class="keyword">this</span>);</span><br><span class="line"><span class="comment">// &#123;&#125;, this === module.exports</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>在nodejs环境下，单文件top-level的this指向的是module.exports, 而浏览器中指向的是window对象</p>
+</blockquote>
+</li>
+<li><p>function中使用<code>this</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 函数声明</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">	<span class="built_in">console</span>.log(<span class="keyword">this</span> === global);</span><br><span class="line">&#125;</span><br><span class="line">foo();</span><br><span class="line"><span class="comment">// true</span></span><br><span class="line"><span class="comment">// 函数表达式</span></span><br><span class="line"><span class="keyword">const</span> bar = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">	<span class="built_in">console</span>.log(<span class="keyword">this</span> === global);</span><br><span class="line">&#125;;</span><br><span class="line">bar();</span><br><span class="line"><span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>在这种调用方式下，this就是nodejs的top-level的global对象</p>
+</blockquote>
+</li>
+<li><p>构造函数中的this</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">Foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">const</span> f = <span class="keyword">new</span> Foo();</span><br><span class="line"><span class="comment">// Foo &#123;&#125;</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>调用new时会创建一个新对象，并把新对象绑定到相关调用函数上</p>
+</blockquote>
+</li>
+<li><p>Object中使用<code>this</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> obj = &#123;</span><br><span class="line">  foo: <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="keyword">this</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line">obj.foo();</span><br><span class="line"><span class="comment">// &#123; foo: [Function: foo] &#125;</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>一般而言，在调用object的属性方法时，this指向的是object本身</p>
+</blockquote>
+</li>
+</ul>
+<h4 id="如何改变this"><a href="#如何改变this" class="headerlink" title="如何改变this"></a>如何改变<code>this</code></h4><blockquote>
+<p>javascript提供了bind，call，apply等机制方便改变函数的上下文（this）</p>
+</blockquote>
+<ul>
+<li><code>apply</code> and <code>call</code><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> sandbox = &#123; <span class="attr">name</span>: <span class="string">"sandbox"</span> &#125;;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">	<span class="built_in">console</span>.log(<span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br><span class="line">foo.apply(sandbox);</span><br><span class="line"><span class="comment">// &#123; name: 'sandbox' &#125;</span></span><br><span class="line">foo.apply(<span class="literal">null</span>);</span><br><span class="line"><span class="comment">// global object</span></span><br><span class="line">foo.call(sandbox);</span><br><span class="line">foo.call(<span class="literal">null</span>);</span><br><span class="line"><span class="comment">// same as above</span></span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<blockquote>
+<p>Function.prototype.apply(null), 并不是将this改成null， 而是不改变原有this的意思, 同理call也是这样</p>
+</blockquote>
+<ul>
+<li><p><code>bind</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> sandbox = &#123; <span class="attr">name</span>: <span class="string">"sandbox"</span> &#125;;</span><br><span class="line"><span class="keyword">const</span> sandbox2 = &#123; <span class="attr">name</span>: <span class="string">"anthoer sandbox"</span> &#125;;</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">	<span class="built_in">console</span>.log(<span class="keyword">this</span>);</span><br><span class="line">&#125;</span><br><span class="line">foo.bind(sandbox)();</span><br><span class="line"><span class="comment">// &#123; name: 'sandbox' &#125;</span></span><br><span class="line">foo.bind(<span class="literal">null</span>)();</span><br><span class="line"><span class="comment">// global object</span></span><br><span class="line">foo.bind(sandbox).bind(sandbox2)();</span><br><span class="line"><span class="comment">// &#123; name: 'sandbox' &#125;</span></span><br><span class="line">foo.bind(<span class="literal">null</span>).bind(sandbox)();</span><br><span class="line"><span class="comment">// 仍然是global objet</span></span><br><span class="line">foo.bind(sandbox).call(sandbox2);</span><br><span class="line">foo.bind(sandbox).apply(sandbox2);</span><br><span class="line"><span class="comment">// &#123; name: 'sandbox' &#125;</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>可以见在bind(null)的情况下，和apply，call的情况一致。bind只会起作用一次，即第一次调用的情况下。与call和apply一起用的时候也是如此。</p>
+</blockquote>
+</li>
+<li><p>arrow function</p>
+<blockquote>
+<p>es2015中提供了arrow function方便bind当前this</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> foo = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">	<span class="built_in">console</span>.log(<span class="keyword">this</span> === <span class="built_in">module</span>.exports);</span><br><span class="line">&#125;;</span><br><span class="line">foo();</span><br><span class="line"><span class="comment">// true</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> sandbox = &#123; <span class="attr">name</span>: <span class="string">"sandbox"</span> &#125;;</span><br><span class="line"><span class="keyword">const</span> obj = &#123;</span><br><span class="line">  foo: <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="keyword">this</span> === <span class="built_in">module</span>.exports);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line">obj.foo();</span><br><span class="line"><span class="comment">// true</span></span><br><span class="line">obj.foo.bind(sandbox)();</span><br><span class="line"><span class="comment">// true</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>arrow function绑定了当前scope中this的值，同时这种绑定也不能改变，类似bind</p>
+</blockquote>
+</li>
+</ul>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><ul>
+<li>一般来讲this的绑定分为显式和隐式<ul>
+<li>apply，call，bind和new一般称为显式, 其他称为隐式</li>
+</ul>
+</li>
+<li>值得注意的是bind的行为，<code>this</code>也不是想改就能改的</li>
+<li>个人推荐尽量使用arrow function，避免使用直接使用this（纯粹个人偏好）</li>
+</ul>
+<blockquote>
+<p>本文是笔者在看《You don’t know js》上卷中的this章节的总结，尽量从实用的角度出发，舍弃了this绑定优先级的介绍，事实上书上讲了很多语言细节和很多特殊的case，喜欢研究细节的同学可以看书的对应章节。同时本文也是笔者在看完该章节之后过了2个月左右之后写的，主要是看哪些知识给我留下了深刻的印象。</p>
+</blockquote>
+	  
+
+	  <div>
+  		<center>
+		  <div class="pagination">
+<ul class="pagination">
+	
+	
+	
+	
+	
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+			
+		
+	
+		
+			
+			
+			
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+	
+	
+		<li class="prev"><a href="/2017/06/14/gmtc/" class="alignleft prev"><i class="fa fa-arrow-circle-o-left"></i>prev</a></li>
+	
+	<li><a href="/"><i class="fa fa-archive"></i>Home</a></li>
+	
+		<li class="next"><a href="/2017/04/24/scope/" class="alignright next">next<i class="fa fa-arrow-circle-o-right"></i></a></li>
+	
+</ul>
+</div>
+
+		</center>
+	  </div>
+	  
+	</div> <!-- col-md-9/col-md-12 -->
+	
+  </div><!-- row -->
+
+	</div>
+  </div>
+  <div class="container-narrow">
+	<footer> <p>
+  &copy; 2021 skyitachi
+  
+      with help from <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> and <a href="http://getbootstrap.com/" target="_blank">Twitter Bootstrap</a>. Theme by <a href="http://github.com/wzpan/hexo-theme-wixo/" target="_blank" rel="noopener">Wixo</a>.    
+</p> </footer>
+  </div> <!-- container-narrow -->
+  
+<a id="gotop" href="#">   
+  <span>▲</span> 
+</a>
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/jquery.tableofcontents.min.js"></script>
+<script src="/js/tocgenerator.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
+
+
+
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+
+</body>
+</html>

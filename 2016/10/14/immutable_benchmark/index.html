@@ -1,0 +1,215 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>vanila javascript vs immutable.js | skyitachi&#39;s blog</title>
+  <meta name="author" content="skyitachi">
+  
+  <meta name="description" content="一定要有输出">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="vanila javascript vs immutable.js"/>
+  <meta property="og:site_name" content="skyitachi&#39;s blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">  
+  <link rel="stylesheet" href="/css/sidenav.css" media="screen" type="text/css">  
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="skyitachi's blog" type="application/atom+xml">
+</head>
+
+<body id="body" data-spy="scroll" data-target=".toc">
+  <div class="container" id="container">
+	<div class="content">
+	  <div class="page-header">		
+  <h1><a class="brand" href="/">skyitachi&#39;s blog</a><span class="split"></span><span class="title">vanila javascript vs immutable.js</span><span class="date" id="title-date"><i class="fa fa-clock-o"></i> 2016-10-14</span></h1>
+</div>		
+
+<div class="row page">
+  <!-- cols -->	
+  
+  
+
+  
+	<div class="col-md-12">
+	  
+
+	  <!-- content -->
+	  <h4 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h4><ul>
+<li>immutable.js和原生js的一些benchmark，这里原生js也包括babel转义后的代码, 比如测试object的spread operator就需要用babel转义</li>
+</ul>
+<h3 id="Array-prototype-push-vs-List-prototype-push"><a href="#Array-prototype-push-vs-List-prototype-push" class="headerlink" title="Array.prototype.push vs List.prototype.push"></a>Array.prototype.push vs List.prototype.push</h3><ul>
+<li>测试代码<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">suite</span><br><span class="line">   .add(<span class="string">"Array.push"</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">     <span class="keyword">const</span> tmp = [].concat(arr);</span><br><span class="line">     tmp.push(<span class="number">1</span>);</span><br><span class="line">   &#125;)</span><br><span class="line">   .add(<span class="string">"List.push"</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">     arrIm.push(<span class="number">1</span>);</span><br><span class="line">   &#125;)</span><br></pre></td></tr></table></figure></li>
+<li>为了达到immutable push会生成新的数组对象的效果，原生js必须先复制出一个新array，然后再push，所以很明显在这个比对上immutable.list会完胜</li>
+<li><img src="https://skyitachi.cn/images/benchmark-push.png" alt="benchmark 结果"></li>
+</ul>
+<h3 id="Array-prototype-concat-vs-List-prototype-push"><a href="#Array-prototype-concat-vs-List-prototype-push" class="headerlink" title="Array.prototype.concat vs List.prototype.push"></a>Array.prototype.concat vs List.prototype.push</h3><ul>
+<li>测试代码<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">suite</span><br><span class="line">    .add(<span class="string">"Array.concat"</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="keyword">const</span> arrNext = arr.concat([<span class="number">1</span>]);</span><br><span class="line">    &#125;)</span><br><span class="line">    .add(<span class="string">"List.push"</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">      arrIm.push(<span class="number">1</span>);</span><br><span class="line">    &#125;);</span><br></pre></td></tr></table></figure></li>
+<li>由于concat的会生成新数组，功能上来讲和List.push类似, 所以做了点比较, 结果很有意思<br><img src="https://skyitachi.cn/images/benchmark-concat.png" alt="benchmark 结果"></li>
+</ul>
+<h3 id="Object-assign-vs-Immutable-Map"><a href="#Object-assign-vs-Immutable-Map" class="headerlink" title="Object.assign vs Immutable.Map"></a>Object.assign vs Immutable.Map</h3><blockquote>
+<p>虽然该测试看上去有点诡异，这里主要是想测试生成一个新对象，对于Immutable.Map来说set操作就可以返回一个新对象, 只测试一层属性原因在于Object本身也是shallow copy, Immutable.Map有setIn这种操作，这是原生Object不是太好模拟的（如果要模拟，性能肯定会比较差，也是先生成一个新对象, 然后在新对象上做一些set，所以只要比较如何生成新对象就能反应问题了）</p>
+</blockquote>
+<ul>
+<li><p>测试代码</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// obj是一个只有一层属性的对象</span></span><br><span class="line"><span class="keyword">const</span> obj = &#123;&#125;;</span><br><span class="line"><span class="comment">// ...</span></span><br><span class="line"><span class="keyword">let</span> imObj = <span class="keyword">new</span> Immutable.Map(obj);</span><br><span class="line">suite</span><br><span class="line">   .add(<span class="string">"Object.assign"</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">     <span class="keyword">const</span> nextObj = <span class="built_in">Object</span>.assign(&#123;&#125;, obj);</span><br><span class="line">   &#125;)</span><br><span class="line">   .add(<span class="string">"Immuatble.Map"</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">     <span class="keyword">let</span> nextObj = imObj.set(keys[<span class="number">0</span>], obj[keys[<span class="number">0</span>]])</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>我个人感觉也是Immutable生成新对象的方式效率更高，当然还不了解其实现原理，只能做一些benchmark</p>
+<p><img src="https://skyitachi.cn/images/object_and_assign_benchmark.png" alt="benchmark 结果"></p>
+</li>
+</ul>
+<h3 id="Object-assign-vs-Object-Spread-Operator"><a href="#Object-assign-vs-Object-Spread-Operator" class="headerlink" title="Object.assign vs Object Spread Operator"></a>Object.assign vs Object Spread Operator</h3><blockquote>
+<p>由于Object Spread Operator只是Object.assign的语法糖, 两者性能基本接近</p>
+</blockquote>
+<ul>
+<li>测试代码<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> obj = &#123;&#125;;</span><br><span class="line"><span class="comment">// 生成len长度的属性</span></span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; len; i++) &#123;</span><br><span class="line">  <span class="keyword">const</span> p1 = <span class="built_in">Math</span>.random().toString().substr(<span class="number">2</span>, <span class="number">10</span>);   </span><br><span class="line">  obj[p1] = <span class="built_in">Math</span>.random();</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">const</span> suite = <span class="keyword">new</span> Benchmark.Suite();</span><br><span class="line">suite</span><br><span class="line">  .add(<span class="string">"Object.assign"</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> nextObj = <span class="built_in">Object</span>.assign(&#123;&#125;, obj);</span><br><span class="line">  &#125;)</span><br><span class="line">  .add(<span class="string">"Object Spread Opeartor"</span>, <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> nextObj = &#123;</span><br><span class="line">      ...obj</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;)</span><br></pre></td></tr></table></figure>
+<img src="https://skyitachi.cn/images/object_and_spread.png" alt="benchmark结果"></li>
+</ul>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li>这里的性能测试还不是很完善，有很多场景没有覆盖到，主要想覆盖的场景是<strong>根据已有对象生成新对象</strong>, 也就是在redux中主要使用的场景</li>
+</ul>
+	  
+
+	  <div>
+  		<center>
+		  <div class="pagination">
+<ul class="pagination">
+	
+	
+	
+	
+	
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+			
+		
+	
+		
+			
+			
+			
+		
+			
+		
+	
+	
+	
+		<li class="prev"><a href="/2017/04/11/%E5%AE%89%E5%85%A8%E5%9C%B0%E5%88%A0%E9%99%A4require.cache/" class="alignleft prev"><i class="fa fa-arrow-circle-o-left"></i>prev</a></li>
+	
+	<li><a href="/"><i class="fa fa-archive"></i>Home</a></li>
+	
+		<li class="next"><a href="/2016/08/18/redux-practice/" class="alignright next">next<i class="fa fa-arrow-circle-o-right"></i></a></li>
+	
+</ul>
+</div>
+
+		</center>
+	  </div>
+	  
+	</div> <!-- col-md-9/col-md-12 -->
+	
+  </div><!-- row -->
+
+	</div>
+  </div>
+  <div class="container-narrow">
+	<footer> <p>
+  &copy; 2021 skyitachi
+  
+      with help from <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> and <a href="http://getbootstrap.com/" target="_blank">Twitter Bootstrap</a>. Theme by <a href="http://github.com/wzpan/hexo-theme-wixo/" target="_blank" rel="noopener">Wixo</a>.    
+</p> </footer>
+  </div> <!-- container-narrow -->
+  
+<a id="gotop" href="#">   
+  <span>▲</span> 
+</a>
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/jquery.tableofcontents.min.js"></script>
+<script src="/js/tocgenerator.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
+
+
+
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Yet another introduction to service worker | skyitachi&#39;s blog</title>
+  <meta name="author" content="skyitachi">
+  
+  <meta name="description" content="一定要有输出">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="Yet another introduction to service worker"/>
+  <meta property="og:site_name" content="skyitachi&#39;s blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">  
+  <link rel="stylesheet" href="/css/sidenav.css" media="screen" type="text/css">  
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="skyitachi's blog" type="application/atom+xml">
+</head>
+
+<body id="body" data-spy="scroll" data-target=".toc">
+  <div class="container" id="container">
+	<div class="content">
+	  <div class="page-header">		
+  <h1><a class="brand" href="/">skyitachi&#39;s blog</a><span class="split"></span><span class="title">Yet another introduction to service worker</span><span class="date" id="title-date"><i class="fa fa-clock-o"></i> 2016-06-06</span></h1>
+</div>		
+
+<div class="row page">
+  <!-- cols -->	
+  
+  
+
+  
+	<div class="col-md-12">
+	  
+
+	  <!-- content -->
+	  <h4 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h4><ul>
+<li>service worker的简介</li>
+<li>service worker中的fetch和push实践</li>
+</ul>
+<h4 id="什么是service-worker"><a href="#什么是service-worker" class="headerlink" title="什么是service worker"></a>什么是service worker</h4><ul>
+<li>service worker首先是一种<a href="http://www.html5rocks.com/en/tutorials/workers/basics/" target="_blank" rel="noopener">web worker</a></li>
+<li><strong>拥有拦截网页请求，push notification</strong>，sync等能力，本文主要讲前两者</li>
+</ul>
+<h4 id="service-worker的lifecycle"><a href="#service-worker的lifecycle" class="headerlink" title="service worker的lifecycle"></a>service worker的lifecycle</h4><blockquote>
+<p>html5rocks中的一篇<a href="http://www.html5rocks.com/en/tutorials/service-worker/introduction/" target="_blank" rel="noopener">tutorials</a><br><img src="https://skyitachi.cn/images/sw-lifecycle-small.png" alt="service worker lifecycle"></p>
+</blockquote>
+<p>service worker主要状态有6种parsed, installing, installed, activating, activated, 和redundant.</p>
+<blockquote>
+<p>引用<a href="https://bitsofco.de/the-service-worker-lifecycle/" target="_blank" rel="noopener">service worker state explained</a><br><img src="https://bitsofco.de/content/images/2016/07/Lifecycle-3.png" alt="service worker state"></p>
+</blockquote>
+<blockquote>
+<p><a href="https://w3c.github.io/ServiceWorker/spec/service_worker/index.html#service-worker-interface" target="_blank" rel="noopener">service worker interface</a><br><img src="https://skyitachi.cn/images/sw-interface.png" alt="service worker interface"></p>
+</blockquote>
+<h4 id="ServiceWorker和ServiceWorkerRegistration状态说明"><a href="#ServiceWorker和ServiceWorkerRegistration状态说明" class="headerlink" title="ServiceWorker和ServiceWorkerRegistration状态说明"></a>ServiceWorker和ServiceWorkerRegistration状态说明</h4><ul>
+<li>ServiceWorker本身有6种状态，而ServiceWorkerRegistration也有<code>installing</code>,<code>waiting</code>, <code>active</code>这三种状态</li>
+<li>ServiceWorkerRegistration的状态取决于ServiceWorker的不同状态, 考虑以下一种情况<blockquote>
+<p>当现有的ServiceWorker已经运行了之后，打开其他tab时，这个worker在注册时有可能已经是active状态了，所以ServiceWorkerRegistration本身也就是active了，不需要再install</p>
+</blockquote>
+</li>
+</ul>
+<h4 id="fetch实践"><a href="#fetch实践" class="headerlink" title="fetch实践"></a>fetch实践</h4><ol>
+<li>register<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// app.js</span></span><br><span class="line">navigator.serviceWorker.register(<span class="string">"./ctrl.js"</span>)</span><br><span class="line">  .then(<span class="function"><span class="keyword">function</span> (<span class="params">register</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (register.installing) &#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">"Service Worker: in the installing state"</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (register.waiting) &#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">"Service Worker: in the waiting state"</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (register.active) &#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">"Service Worker: in the active state"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">"Service Worker: "</span>, register.scope);</span><br><span class="line">  &#125;)</span><br><span class="line">  .catch(<span class="function"><span class="keyword">function</span> (<span class="params">err</span>) </span>&#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">"serviceWorker registration failed: "</span>, err);</span><br><span class="line">  &#125;);</span><br></pre></td></tr></table></figure></li>
+<li>install<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ctrl.js, 将需要缓存的静态资源加入到cache storage中</span></span><br><span class="line"><span class="keyword">var</span> urlsToCache = [</span><br><span class="line">  <span class="string">"/static/index.js"</span>, </span><br><span class="line">  <span class="string">"/static/index.css"</span></span><br><span class="line">];</span><br><span class="line"><span class="keyword">var</span> CACHE_NAME = <span class="string">"page-cache-v1"</span>;</span><br><span class="line"><span class="keyword">this</span>.addEventListener(<span class="string">"install"</span>, <span class="function"><span class="keyword">function</span> (<span class="params">event</span>) </span>&#123;</span><br><span class="line">  event.waitUntil(</span><br><span class="line">    caches.open(CACHE_NAME)</span><br><span class="line">      .then(<span class="function"><span class="keyword">function</span> (<span class="params">cache</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> cache.addAll(urlsToCache);</span><br><span class="line">      &#125;)</span><br><span class="line">  );</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></li>
+<li>activate<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">this</span>.addEventListener(<span class="string">"activate"</span>, <span class="function"><span class="keyword">function</span> (<span class="params">event</span>) </span>&#123;</span><br><span class="line">  <span class="comment">// do some cache strategy, 这里是只允许CACHE_NAME的缓存存在</span></span><br><span class="line">  <span class="keyword">var</span> cacheWhiteList = [CACHE_NAME];</span><br><span class="line">  event.waitUntil(</span><br><span class="line">    caches.keys().then(<span class="function"><span class="keyword">function</span> (<span class="params">cacheNames</span>) </span>&#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="built_in">Promise</span>.all(</span><br><span class="line">        cacheNames.map(<span class="function"><span class="keyword">function</span> (<span class="params">cacheName</span>) </span>&#123;</span><br><span class="line">          <span class="keyword">if</span> (cacheWhiteList.indexOf(cacheName) === <span class="number">-1</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> caches.delete(cacheName);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">      );</span><br><span class="line">    &#125;)</span><br><span class="line">  );</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></li>
+<li>fetch<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这里就是拦截请求的关键了，官方说法是change network stack default behavior, 即使是offline的时候也是可触发fetch的</span></span><br><span class="line"><span class="keyword">this</span>.addEventListener(<span class="string">"fetch"</span>, <span class="function"><span class="keyword">function</span> (<span class="params">event</span>) </span>&#123;</span><br><span class="line">  event.respondWith(</span><br><span class="line">    caches.match(event.request)</span><br><span class="line">      .then(<span class="function"><span class="keyword">function</span> (<span class="params">response</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (response) &#123;</span><br><span class="line">          <span class="built_in">console</span>.log(<span class="string">"SW: cache hit"</span>);</span><br><span class="line">          <span class="keyword">return</span> response;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          <span class="built_in">console</span>.log(<span class="string">"SW: cache does not hit"</span>);</span><br><span class="line">          <span class="keyword">return</span> fetch(event.request);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;)</span><br><span class="line">  );</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+说明一下： fetch只拦截get请求且是https的，实践中localhost的也是可行的</li>
+</ol>
+<h4 id="push实践"><a href="#push实践" class="headerlink" title="push实践"></a>push实践</h4><blockquote>
+<p>chrome中push依赖gcm，点击<a href="https://developers.google.com/web/fundamentals/getting-started/push-notifications/step-04?hl=en" target="_blank" rel="noopener">如何申请</a>, 同时需要配置manifest.json，此文中也有说明，当然得自备梯子</p>
+</blockquote>
+<p>首先简要看下push的整个流程<br><img src="https://skyitachi.cn/images/sw-push.png" alt="push.png"><br>图中黑色线代表初始化设置阶段，起点是service worker的registration,<br>蓝色线代表服务端发送push事件的整个流程, 起点是your server</p>
+<blockquote>
+<p>下文中假设已经申请好gcm相关和设置好manifest</p>
+</blockquote>
+<ol>
+<li>register<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">navigator.serviceWorker.register(<span class="string">"./ctrl.js"</span>)</span><br><span class="line">  .then(<span class="function"><span class="keyword">function</span> (<span class="params">registration</span>) </span>&#123;</span><br><span class="line">    <span class="comment">// 检测一下权限</span></span><br><span class="line">    <span class="keyword">if</span> (Notification.permission === <span class="string">"denied"</span>) &#123;</span><br><span class="line">      <span class="built_in">console</span>.warn(<span class="string">"no permission"</span>);</span><br><span class="line">      <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    registration.pushManager.subscribe(&#123;</span><br><span class="line">      userVisibleOnly: <span class="literal">true</span></span><br><span class="line">    &#125;).then(<span class="function"><span class="keyword">function</span>(<span class="params">sub</span>) </span>&#123;</span><br><span class="line">      <span class="comment">// send subId to your server</span></span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;);</span><br></pre></td></tr></table></figure></li>
+<li>监听push事件<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">this</span>.addEventListener(<span class="string">"push"</span>, event =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> msgUrl = <span class="string">"your server message url"</span>;</span><br><span class="line">  event.waitUntil(</span><br><span class="line">    fetch(msgUrl)</span><br><span class="line">      .then(<span class="function"><span class="params">response</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (response.status === <span class="number">200</span>) &#123;</span><br><span class="line">          <span class="keyword">return</span> response.json();</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;)</span><br><span class="line">      .then(<span class="function"><span class="params">data</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="comment">// show chrome browser notification</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.registration.showNotification(data.title, &#123;</span><br><span class="line">          body: data.message,</span><br><span class="line">          icon: data.ico,</span><br><span class="line">          tag: data.tag</span><br><span class="line">        &#125;);</span><br><span class="line">      &#125;)</span><br><span class="line">  );</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure></li>
+<li>发送push事件<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// your_server.js</span></span><br><span class="line"><span class="keyword">var</span> gcm = &#123; <span class="attr">api_key</span>: <span class="string">"your api key"</span> &#125;;</span><br><span class="line"><span class="keyword">var</span> subId = <span class="string">"your subId"</span>;</span><br><span class="line"><span class="keyword">var</span> send = <span class="function"><span class="keyword">function</span> <span class="title">example</span>(<span class="params"></span>) </span>&#123;&#125;; <span class="comment">// your server send response method</span></span><br><span class="line">request(&#123;</span><br><span class="line">  url: <span class="string">"https://android.googleapis.com/gcm/send"</span>,</span><br><span class="line">  method: <span class="string">"post"</span>,</span><br><span class="line">  headers: &#123;</span><br><span class="line">    <span class="string">"Content-Type"</span>: <span class="string">"application/json"</span>,</span><br><span class="line">    <span class="string">"Authorization"</span>: <span class="string">`key= <span class="subst">$&#123;gcm.api_key&#125;</span>`</span></span><br><span class="line">  &#125;,</span><br><span class="line">  body: <span class="built_in">JSON</span>.stringify(&#123;</span><br><span class="line">    <span class="string">"registration_ids"</span>: [subId]</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;, <span class="function"><span class="keyword">function</span> (<span class="params">err, response, body</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (err) &#123;</span><br><span class="line">    send(err.message);</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    send(&#123;</span><br><span class="line">      title: <span class="string">"msg_title"</span>,</span><br><span class="line">      body: <span class="string">"msg body"</span>,</span><br><span class="line">      icon: <span class="string">"icon_url"</span>,</span><br><span class="line">      tag: <span class="string">"msg_tag"</span></span><br><span class="line">    &#125;);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><ul>
+<li>关于service worker中fetch和push的使用我这里只是简单的介绍了一下，没有提到比如scope和service worker如何更新等方面, 这篇文章也是我自己学习service worker的一些总结，很明显有些不足之处，网上的service worker教程大多比较零散，这里会集中一些资料让大家方便查阅</li>
+</ul>
+<h4 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h4><ul>
+<li><a href="https://bitsofco.de/the-service-worker-lifecycle/" target="_blank" rel="noopener">https://bitsofco.de/the-service-worker-lifecycle/</a></li>
+<li><a href="https://github.com/w3c/ServiceWorker/blob/master/explainer.md" target="_blank" rel="noopener">https://github.com/w3c/ServiceWorker/blob/master/explainer.md</a></li>
+<li><a href="https://jakearchibald.github.io/isserviceworkerready/resources.html" target="_blank" rel="noopener">https://jakearchibald.github.io/isserviceworkerready/resources.html</a></li>
+<li><a href="https://w3c.github.io/ServiceWorker/spec/service_worker/index.html" target="_blank" rel="noopener">https://w3c.github.io/ServiceWorker/spec/service_worker/index.html</a></li>
+<li><a href="http://www.html5rocks.com/en/tutorials/service-worker/introduction/" target="_blank" rel="noopener">http://www.html5rocks.com/en/tutorials/service-worker/introduction/</a></li>
+<li><a href="https://developers.google.com/web/fundamentals/getting-started/push-notifications/?hl=en" target="_blank" rel="noopener">https://developers.google.com/web/fundamentals/getting-started/push-notifications/?hl=en</a></li>
+</ul>
+	  
+
+	  <div>
+  		<center>
+		  <div class="pagination">
+<ul class="pagination">
+	
+	
+	
+	
+	
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+			
+		
+	
+	
+	
+		<li class="prev"><a href="/2016/08/18/redux-practice/" class="alignleft prev"><i class="fa fa-arrow-circle-o-left"></i>prev</a></li>
+	
+	<li><a href="/"><i class="fa fa-archive"></i>Home</a></li>
+	
+		<li class="next disabled"><a>next<i class="fa fa-arrow-circle-o-right"></i></a></li>
+	
+</ul>
+</div>
+
+		</center>
+	  </div>
+	  
+	</div> <!-- col-md-9/col-md-12 -->
+	
+  </div><!-- row -->
+
+	</div>
+  </div>
+  <div class="container-narrow">
+	<footer> <p>
+  &copy; 2021 skyitachi
+  
+      with help from <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> and <a href="http://getbootstrap.com/" target="_blank">Twitter Bootstrap</a>. Theme by <a href="http://github.com/wzpan/hexo-theme-wixo/" target="_blank" rel="noopener">Wixo</a>.    
+</p> </footer>
+  </div> <!-- container-narrow -->
+  
+<a id="gotop" href="#">   
+  <span>▲</span> 
+</a>
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/jquery.tableofcontents.min.js"></script>
+<script src="/js/tocgenerator.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
+
+
+
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+
+</body>
+</html>

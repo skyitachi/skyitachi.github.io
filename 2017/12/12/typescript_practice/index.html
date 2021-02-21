@@ -1,0 +1,249 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>typescript的声明实践 | skyitachi&#39;s blog</title>
+  <meta name="author" content="skyitachi">
+  
+  <meta name="description" content="一定要有输出">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="typescript的声明实践"/>
+  <meta property="og:site_name" content="skyitachi&#39;s blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+  
+  
+  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">  
+  <link rel="stylesheet" href="/css/sidenav.css" media="screen" type="text/css">  
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+
+<meta name="generator" content="Hexo 4.2.1"><link rel="alternate" href="/atom.xml" title="skyitachi's blog" type="application/atom+xml">
+</head>
+
+<body id="body" data-spy="scroll" data-target=".toc">
+  <div class="container" id="container">
+	<div class="content">
+	  <div class="page-header">		
+  <h1><a class="brand" href="/">skyitachi&#39;s blog</a><span class="split"></span><span class="title">typescript的声明实践</span><span class="date" id="title-date"><i class="fa fa-clock-o"></i> 2017-12-12</span></h1>
+</div>		
+
+<div class="row page">
+  <!-- cols -->	
+  
+  
+
+  
+	<div class="col-md-12">
+	  
+
+	  <!-- content -->
+	  <blockquote>
+<p>typescript最直观和方便的就是它的type，静态类型配合vscode往往比文档带来的体验都好</p>
+</blockquote>
+<blockquote>
+<p>如无特殊情况，下文中所有tsconfig包含{moduleResolution: “node”, module: “commonjs”}, tsc version &gt;= 2</p>
+</blockquote>
+<h4 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h4><ul>
+<li>如何使用声明文件，声明文件的使用场景和typescript是如何寻找声明文件</li>
+<li>一些typescript声明tips</li>
+</ul>
+<h4 id="如何使用typescirpt的type"><a href="#如何使用typescirpt的type" class="headerlink" title="如何使用typescirpt的type"></a>如何使用typescirpt的type</h4><ul>
+<li><p>如何触发ts的compiler寻找声明文件</p>
+<ul>
+<li><code>import</code>某个模块才会触发</li>
+<li><code>require</code>不会触发，不管这个模块有没有声明文件</li>
+</ul>
+</li>
+<li><p>如何知道typescript寻找声明文件</p>
+<ul>
+<li>一般而言使用tsc会出现<code>Error TS7016: Could not find a declaration file for module xxx</code>, vscode也会有相应提示</li>
+</ul>
+<p><img src="http://o9w5dyyws.bkt.clouddn.com/ts-no-declaration-hint.png" alt="ts-no-declaration-error-hint"> </p>
+<ul>
+<li>vscode会提示我们使用<code>npm install @types/xxx</code>安装该模块的声明文件，下文会介绍<code>@types</code>的使用场景</li>
+</ul>
+</li>
+<li><p>使用types的场景</p>
+<ul>
+<li>ts项目使用js写的项目(指的是原有js项目没有声明文件)，有如下方法是该js项目支持typescript的声明<ol>
+<li>尝试安装@types/xxx, 如果没有就用第二种方法</li>
+<li>在ts项目下对该模块做单独声明<code>declare moudle xxx</code>, 使用<code>paths</code>做映射</li>
+</ol>
+</li>
+<li>ts项目中使用ts写的项目，一般而言ts写的项目编译后会有声明文件，利用这一点ts可以直接关联到这些声明文件，无需其他操作</li>
+</ul>
+</li>
+<li><p>手动编写的声明文件引入其他声明文件</p>
+<ul>
+<li>引用nodejs的声明, <code>///&lt;reference types=“node”/&gt;</code></li>
+<li>使用<code>import xxx from “xxx”</code></li>
+</ul>
+</li>
+</ul>
+<h4 id="typescript是如何寻找声明文件的"><a href="#typescript是如何寻找声明文件的" class="headerlink" title="typescript是如何寻找声明文件的"></a>typescript是如何寻找声明文件的</h4><ul>
+<li><p>影响typescript寻找声明文件的配置</p>
+<ul>
+<li>moduleResolution, 默认是nodejs</li>
+<li>paths, 模块和声明文件路径的映射</li>
+<li>typeRoots, 针对<a href="https://github.com/Microsoft/TypeScript/issues/12222#issuecomment-260417733" target="_blank" rel="noopener"><code>/// &lt;reference types=&quot;...&quot; /&gt;</code></a></li>
+<li>types, 是指加入编译的声明文件，和寻找路径无关</li>
+</ul>
+</li>
+<li><p><code>tsc --traceResolution xxx</code>会把寻找声明文件的所有信息都输出</p>
+<p><img src="http://o9w5dyyws.bkt.clouddn.com/typescript-resolve-types.png" alt="typescript-resolve-types"></p>
+</li>
+</ul>
+<blockquote>
+<p>nodejs项目需要手动安装@types/node, 才会有nodejs的提示</p>
+</blockquote>
+<blockquote>
+<p>scoped package如何使用@types，@yourscope/packagename -&gt; @types/yourscope__packagename</p>
+</blockquote>
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><ul>
+<li>自己能控制的项目，声明尽量放在项目内部</li>
+<li>自己不能控制的项目，声明使用@types</li>
+</ul>
+	  
+
+	  <div>
+  		<center>
+		  <div class="pagination">
+<ul class="pagination">
+	
+	
+	
+	
+	
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+			
+		
+	
+		
+			
+			
+			
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+	
+	
+		<li class="prev"><a href="/2019/08/21/passing-value-in-cpp/" class="alignleft prev"><i class="fa fa-arrow-circle-o-left"></i>prev</a></li>
+	
+	<li><a href="/"><i class="fa fa-archive"></i>Home</a></li>
+	
+		<li class="next"><a href="/2017/06/14/gmtc/" class="alignright next">next<i class="fa fa-arrow-circle-o-right"></i></a></li>
+	
+</ul>
+</div>
+
+		</center>
+	  </div>
+	  
+	</div> <!-- col-md-9/col-md-12 -->
+	
+  </div><!-- row -->
+
+	</div>
+  </div>
+  <div class="container-narrow">
+	<footer> <p>
+  &copy; 2021 skyitachi
+  
+      with help from <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> and <a href="http://getbootstrap.com/" target="_blank">Twitter Bootstrap</a>. Theme by <a href="http://github.com/wzpan/hexo-theme-wixo/" target="_blank" rel="noopener">Wixo</a>.    
+</p> </footer>
+  </div> <!-- container-narrow -->
+  
+<a id="gotop" href="#">   
+  <span>▲</span> 
+</a>
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/jquery.tableofcontents.min.js"></script>
+<script src="/js/tocgenerator.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
+
+
+
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+
+</body>
+</html>
