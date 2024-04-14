@@ -1,0 +1,214 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>浅谈 javascript 作用域 | skyitachi&#39;s blog</title>
+  <meta name="author" content="skyitachi">
+  
+  <meta name="description" content="一定要有输出">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="浅谈 javascript 作用域"/>
+  <meta property="og:site_name" content="skyitachi&#39;s blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+    <link rel="alternative" href="/atom.xml" title="skyitachi&#39;s blog" type="application/atom+xml">
+  
+  
+    <link href="/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">  
+  <link rel="stylesheet" href="/css/sidenav.css" media="screen" type="text/css">  
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+
+<meta name="generator" content="Hexo 7.1.1"></head>
+
+<body id="body" data-spy="scroll" data-target=".toc">
+  <div class="container" id="container">
+	<div class="content">
+	  <div class="page-header">		
+  <h1><a class="brand" href="/">skyitachi&#39;s blog</a><span class="split"></span><span class="title">浅谈 javascript 作用域</span><span class="date" id="title-date"><i class="fa fa-clock-o"></i> 2017-04-24</span></h1>
+</div>		
+
+<div class="row page">
+  <!-- cols -->	
+  
+  
+
+  
+	<div class="col-md-12">
+	  
+
+	  <!-- content -->
+	  <h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><ul>
+<li>本文将主要介绍javascript中作用域相关的问题，尽可能多的使用代码举例说明，尽量少涉及动态作用域相关</li>
+</ul>
+<h4 id="词法作用域-核心"><a href="#词法作用域-核心" class="headerlink" title="词法作用域(核心)"></a>词法作用域(核心)</h4><blockquote>
+<p>javascript的作用域是词法作用域（静态作用域）, 不过像<code>eval</code>，<code>with</code>这些具有动态改变作用域的能力, 本文重点在于词法作用域</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> a = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">testLexicalScope</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(a); <span class="comment">// 由于当前scope中a是由最外层定义的，所以此处的a只能访问到最外层的a</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">b</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> a = <span class="number">2</span>;</span><br><span class="line">  <span class="title function_">testLexicalScope</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title function_">b</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 另一个例子</span></span><br><span class="line"><span class="keyword">let</span> sameVar1 = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">let</span> sameVar2 = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">outerScope</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">let</span> sameVar1 = <span class="number">2</span>;</span><br><span class="line">  <span class="keyword">function</span> <span class="title function_">innerScope</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;current scope: sameVar1 is &quot;</span>, sameVar1); <span class="comment">// 当前的scope中最近的sameVar1值是2</span></span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;current scope: sameVar2 is &quot;</span>, sameVar2);</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="title function_">innerScope</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title function_">outerScope</span>();</span><br><span class="line"><span class="comment">// current scope: sameVar1 is  2</span></span><br><span class="line"><span class="comment">// current scope: sameVar2 is  1</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//另一个例子</span></span><br><span class="line"><span class="keyword">const</span> f1 = <span class="keyword">function</span> (<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(outVar);</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> outVar = <span class="number">1</span>;</span><br><span class="line"><span class="title function_">f1</span>(); <span class="comment">// 1 why</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>只有在函数声明的时候才会遵循lexical scope的规则, 如果是函数表达式则取决于调用的时机</p>
+</blockquote>
+<h4 id="不同类型的作用域-如何创建scope"><a href="#不同类型的作用域-如何创建scope" class="headerlink" title="不同类型的作用域(如何创建scope)"></a>不同类型的作用域(如何创建scope)</h4><ul>
+<li>函数作用域</li>
+</ul>
+<blockquote>
+<p>属于这个函数的全部变量都可以在整个函数的范围内使用及复用<br>javascript 每个函数都会创建一个scope</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">fScope</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="keyword">var</span> aStr = <span class="string">&quot;function&quot;</span>;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(aStr);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="title function_">fScope</span>();</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(aStr); <span class="comment">// ReferenceError: aStr is not defined</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>块级作用域({…})</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> foo = <span class="literal">true</span>;</span><br><span class="line">&#123; <span class="comment">// 这里是使用let，将foo绑定到了&#123;&#125;这个块作用域中</span></span><br><span class="line">  <span class="keyword">let</span> foo = <span class="literal">false</span>;</span><br><span class="line">  <span class="keyword">let</span> bar = <span class="string">&quot;cannot seen&quot;</span>;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(foo); <span class="comment">// false</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(foo); <span class="comment">// true</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(bar); <span class="comment">// ReferenceError</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="var"><a href="#var" class="headerlink" title="var"></a><code>var</code></h4><ul>
+<li>函数作用域中的<code>var</code>仍然遵循函数作用域相关的</li>
+<li><code>var</code>中没有块级作用域</li>
+</ul>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> foo = <span class="literal">true</span>;</span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">var</span> foo = <span class="literal">false</span>;</span><br><span class="line">  <span class="keyword">var</span> bar = <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(foo); <span class="comment">// false</span></span><br><span class="line"><span class="variable language_">console</span>.<span class="title function_">log</span>(bar); <span class="comment">// bar</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="变量提升"><a href="#变量提升" class="headerlink" title="变量提升"></a>变量提升</h4><blockquote>
+<p>变量和函数的所有声明多会在任何代码被执行前首先被处理（编译器找到这些变量与合适的作用域关联）</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">hoisting</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(a);</span><br><span class="line">  <span class="keyword">var</span> a = <span class="number">1</span>;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(a);</span><br><span class="line">&#125;</span><br><span class="line"><span class="title function_">hoisting</span>();</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><strong>又是let</strong></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">hoisting</span>(<span class="params"></span>) &#123;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(a); <span class="comment">// 第一个let之上的区域叫做`temporal dead zone`</span></span><br><span class="line">    <span class="keyword">let</span> a = <span class="number">1</span>;</span><br><span class="line">    <span class="variable language_">console</span>.<span class="title function_">log</span>(a);</span><br><span class="line">&#125;</span><br><span class="line"><span class="title function_">hoisting</span>(); <span class="comment">// ReferenceError</span></span><br></pre></td></tr></table></figure>
+<p><strong>函数声明的优先级会高于变量声明</strong></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="title function_">foo</span>(); <span class="comment">// in the function</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> foo = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">foo</span>(<span class="params"></span>) &#123;</span><br><span class="line">  <span class="variable language_">console</span>.<span class="title function_">log</span>(<span class="string">&quot;in the function&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><ul>
+<li>关于块级作用域, 可用try{} catch(err) {&#x2F;<em>这里是块级作用域</em>&#x2F;}模拟，更多参考:《你不知道的javascript》上卷中3.4.2节</li>
+<li>使用<code>let</code>，<code>const</code>是最佳实践</li>
+<li>需要区分函数声明和函数表达式</li>
+<li>尽量不要写有提升的代码（声明尽量提前）</li>
+</ul>
+	  
+
+	  <div>
+  		<center>
+		  <div class="pagination">
+<ul class="pagination">
+	
+	
+	
+	
+	
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+			
+		
+	
+	
+	
+		<li class="prev"><a href="/2019/08/21/passing-value-in-cpp/" class="alignleft prev"><i class="fa fa-arrow-circle-o-left"></i>prev</a></li>
+	
+	<li><a href="/"><i class="fa fa-archive"></i>Home</a></li>
+	
+		<li class="next disabled"><a>next<i class="fa fa-arrow-circle-o-right"></i></a></li>
+	
+</ul>
+</div>
+
+		</center>
+	  </div>
+	  
+	</div> <!-- col-md-9/col-md-12 -->
+	
+  </div><!-- row -->
+
+	</div>
+  </div>
+  <div class="container-narrow">
+	<footer> <p>
+  &copy; 2024 skyitachi
+  
+      with help from <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> and <a href="http://getbootstrap.com/" target="_blank">Twitter Bootstrap</a>. Theme by <a href="http://github.com/wzpan/hexo-theme-wixo/">Wixo</a>.    
+</p> </footer>
+  </div> <!-- container-narrow -->
+  
+<a id="gotop" href="#">   
+  <span>▲</span> 
+</a>
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/jquery.tableofcontents.min.js"></script>
+<script src="/js/tocgenerator.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+
+</body>
+</html>

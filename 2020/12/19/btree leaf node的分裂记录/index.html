@@ -1,0 +1,195 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>BTree Leaf Node分裂问题 | skyitachi&#39;s blog</title>
+  <meta name="author" content="skyitachi">
+  
+  <meta name="description" content="一定要有输出">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="BTree Leaf Node分裂问题"/>
+  <meta property="og:site_name" content="skyitachi&#39;s blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+    <link rel="alternative" href="/atom.xml" title="skyitachi&#39;s blog" type="application/atom+xml">
+  
+  
+    <link href="/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">  
+  <link rel="stylesheet" href="/css/sidenav.css" media="screen" type="text/css">  
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+
+<meta name="generator" content="Hexo 7.1.1"></head>
+
+<body id="body" data-spy="scroll" data-target=".toc">
+  <div class="container" id="container">
+	<div class="content">
+	  <div class="page-header">		
+  <h1><a class="brand" href="/">skyitachi&#39;s blog</a><span class="split"></span><span class="title">BTree Leaf Node分裂问题</span><span class="date" id="title-date"><i class="fa fa-clock-o"></i> 2020-12-19</span></h1>
+</div>		
+
+<div class="row page">
+  <!-- cols -->	
+  
+  
+
+  
+	<div class="col-md-12">
+	  
+
+	  <!-- content -->
+	  <h3 id="BTree-Leaf-Node分裂问题记录"><a href="#BTree-Leaf-Node分裂问题记录" class="headerlink" title="BTree Leaf Node分裂问题记录"></a>BTree Leaf Node分裂问题记录</h3><p>这两天在做BTree的实现的时候被一个问题困住了，就是BPlusTreeInternalPage的分裂问题</p>
+<p>cmu15445中，BPlusTreeInternalPage 只提供了一个MoveHalfTo的操作，这在我看来是不够用的</p>
+<ul>
+<li>先看下bustub的api</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">MoveAllTo</span><span class="params">(BPlusTreeInternalPage *recipient, <span class="type">const</span> KeyType &amp;middle_key, BufferPoolManager *buffer_pool_manager)</span></span>;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">MoveHalfTo</span><span class="params">(BPlusTreeInternalPage *recipient, BufferPoolManager *buffer_pool_manager)</span></span>;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">MoveFirstToEndOf</span><span class="params">(BPlusTreeInternalPage *recipient, <span class="type">const</span> KeyType &amp;middle_key,</span></span></span><br><span class="line"><span class="params"><span class="function">                        BufferPoolManager *buffer_pool_manager)</span></span>;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">MoveLastToFrontOf</span><span class="params">(BPlusTreeInternalPage *recipient, <span class="type">const</span> KeyType &amp;middle_key,</span></span></span><br><span class="line"><span class="params"><span class="function">                         BufferPoolManager *buffer_pool_manager)</span></span>;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>而我在yedis中写的btree 中internalnode会把midkey提到parent上以保持btree的特性</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">BTreeNodePage* <span class="title">index_split</span><span class="params">(BufferPoolManager*, BTreeNodePage* parent, <span class="type">int</span> child_idx)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h4 id="解释下两种api的作用"><a href="#解释下两种api的作用" class="headerlink" title="解释下两种api的作用"></a>解释下两种api的作用</h4><ol>
+<li>bustub 分裂之后</li>
+</ol>
+<p><img src="/home/skyitachi/lab/blog/imgs/image-20201219221942147.png" alt="image-20201219221942147"></p>
+<p>bustub中第一个key都是无效的，所以能保证ki &gt; (k in pi)</p>
+<p>这种分裂乍看起来第二页多了一个key，后续在这个page上insert,让我感觉有点不对劲，<strong>事实上只要忽略第一个key就好了，本例子中直接忽略k2</strong></p>
+<ol start="2">
+<li><p>yedis的分裂</p>
+<p><img src="/home/skyitachi/lab/blog/imgs/image-20201219222511014.png" alt="image-20201219222511014"></p>
+</li>
+</ol>
+<p>我会主动把mid-key剔除出去（要插入到parent中），这样看起来就干净有点了，事实上两者没什么区别。</p>
+<p>这只是一个思维上的转变，bustub的抽象更好些，yedis中的操作api都是太零散了，继续加油</p>
+	  
+
+	  <div>
+  		<center>
+		  <div class="pagination">
+<ul class="pagination">
+	
+	
+	
+	
+	
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+			
+		
+	
+		
+			
+			
+			
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+	
+	
+		<li class="prev"><a href="/2021/01/10/2020%E5%B9%B4%E5%BA%A6%E6%80%BB%E7%BB%93/" class="alignleft prev"><i class="fa fa-arrow-circle-o-left"></i>prev</a></li>
+	
+	<li><a href="/"><i class="fa fa-archive"></i>Home</a></li>
+	
+		<li class="next"><a href="/2020/04/14/%E4%BA%8C%E5%88%86%E6%B3%95%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%AE%9E%E7%8E%B0/" class="alignright next">next<i class="fa fa-arrow-circle-o-right"></i></a></li>
+	
+</ul>
+</div>
+
+		</center>
+	  </div>
+	  
+	</div> <!-- col-md-9/col-md-12 -->
+	
+  </div><!-- row -->
+
+	</div>
+  </div>
+  <div class="container-narrow">
+	<footer> <p>
+  &copy; 2024 skyitachi
+  
+      with help from <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> and <a href="http://getbootstrap.com/" target="_blank">Twitter Bootstrap</a>. Theme by <a href="http://github.com/wzpan/hexo-theme-wixo/">Wixo</a>.    
+</p> </footer>
+  </div> <!-- container-narrow -->
+  
+<a id="gotop" href="#">   
+  <span>▲</span> 
+</a>
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/jquery.tableofcontents.min.js"></script>
+<script src="/js/tocgenerator.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+
+</body>
+</html>

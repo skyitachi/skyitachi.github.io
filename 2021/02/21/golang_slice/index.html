@@ -1,0 +1,230 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Golang 中[]byte, string和[]rune的相互转化的底层原理和剖析 | skyitachi&#39;s blog</title>
+  <meta name="author" content="skyitachi">
+  
+  <meta name="description" content="一定要有输出">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="Golang 中[]byte, string和[]rune的相互转化的底层原理和剖析"/>
+  <meta property="og:site_name" content="skyitachi&#39;s blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+    <link rel="alternative" href="/atom.xml" title="skyitachi&#39;s blog" type="application/atom+xml">
+  
+  
+    <link href="/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">  
+  <link rel="stylesheet" href="/css/sidenav.css" media="screen" type="text/css">  
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+
+<meta name="generator" content="Hexo 7.1.1"></head>
+
+<body id="body" data-spy="scroll" data-target=".toc">
+  <div class="container" id="container">
+	<div class="content">
+	  <div class="page-header">		
+  <h1><a class="brand" href="/">skyitachi&#39;s blog</a><span class="split"></span><span class="title">Golang 中[]byte, string和[]rune的相互转化的底层原理和剖析</span><span class="date" id="title-date"><i class="fa fa-clock-o"></i> 2021-02-21</span></h1>
+</div>		
+
+<div class="row page">
+  <!-- cols -->	
+  
+  <div class="col-xs-12 col-sm-3 col-md-3 toc"> 
+	<!-- toc -->
+<script type="text/javascript">
+		jQuery(document).ready(function() {
+ 		   generateWikiTOC('.note', '.toc',  2 , 2 );
+		});
+</script>
+  </div><!-- col-md-3 -->
+  
+  
+
+  
+  <div class="col-xs-12 col-sm-9 col-md-9 note">
+	
+
+	  <!-- content -->
+	  <h1 id="Golang-中-byte-string和-rune的相互转化的底层原理和剖析"><a href="#Golang-中-byte-string和-rune的相互转化的底层原理和剖析" class="headerlink" title="Golang 中[]byte, string和[]rune的相互转化的底层原理和剖析"></a>Golang 中<code>[]byte</code>, <code>string</code>和<code>[]rune</code>的相互转化的底层原理和剖析</h1><p>在golang中有些场景经常会用到[]byte和string的相互转化，尤其是在使用json.Marshal和json.Unmarshal的时候，经常会遇到需要这种转化。</p>
+<p>本文主要说明以下内容：</p>
+<ul>
+<li>几种类型相互转化的方法和性能分析</li>
+<li>这些类型的底层存储</li>
+<li>代码<a href="https://gist.github.com/skyitachi/f8f22a390f547466216b0a4084b98bee">gist</a></li>
+</ul>
+<h2 id="相互转化"><a href="#相互转化" class="headerlink" title="相互转化"></a>相互转化</h2><h3 id="byte和string的相互转化"><a href="#byte和string的相互转化" class="headerlink" title="[]byte和string的相互转化"></a>[]byte和string的相互转化</h3><h4 id="string-byte"><a href="#string-byte" class="headerlink" title="string -&gt; []byte"></a>string -&gt; []byte</h4><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkStringToByteSlice</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">	s := genString(<span class="number">10000</span>)</span><br><span class="line">	b.ReportAllocs()</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; b.N; i++ &#123;</span><br><span class="line">		bs := []<span class="type">byte</span>(s)</span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(bs) != <span class="built_in">len</span>(s) &#123;</span><br><span class="line">			b.Error(<span class="string">&quot;error&quot;</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkStringToByteSliceUnsafe</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">	s := genString(<span class="number">10000</span>)</span><br><span class="line">	b.ReportAllocs()</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; b.N; i++ &#123;</span><br><span class="line">		l := <span class="built_in">len</span>(s)</span><br><span class="line">		bs := *(*[]<span class="type">byte</span>)(unsafe.Pointer(&amp;reflect.SliceHeader&#123;</span><br><span class="line">			Data: (*(*reflect.StringHeader)(unsafe.Pointer(&amp;s))).Data,</span><br><span class="line">			Len:  l,</span><br><span class="line">			Cap:  l,</span><br><span class="line">		&#125;))</span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(bs) != <span class="built_in">len</span>(s) &#123;</span><br><span class="line">			b.Error(<span class="string">&quot;error&quot;</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>第一种使用[]byte这种直接转化，也是我们常用的方式，第二种是使用unsafe的方式。这两种区别就在于一个是重新分配了内存，另一个是复用了原来的内存。</p>
+<p>benchmark的结果也验证了这一点</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">go test  -run=BenchmarkStringToByteSlice -bench=StringToByteSlice</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">go-demo.test</span></span><br><span class="line"></span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: go-demo</span><br><span class="line">BenchmarkStringToByteSlice-12          	 1164224	       964 ns/op	   10285 B/op	       1 allocs/op</span><br><span class="line">BenchmarkStringToByteSliceUnsafe-12    	1000000000	         0.380 ns/op	       0 B/op	       0 allocs/op</span><br><span class="line">PASS</span><br><span class="line">ok  	go-demo	2.089s</span><br></pre></td></tr></table></figure>
+
+<h4 id="byte-string"><a href="#byte-string" class="headerlink" title="[]byte -&gt; string"></a>[]byte -&gt; string</h4><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkSliceByteToString</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">	bs := genSliceByte(<span class="number">100</span>)</span><br><span class="line">	b.ReportAllocs()</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; b.N; i++ &#123;</span><br><span class="line">		s := <span class="type">string</span>(bs)</span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(s) != <span class="built_in">len</span>(bs) &#123;</span><br><span class="line">			b.Error(<span class="string">&quot;error&quot;</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkSliceByteToStringUnsafe</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">	bs := genSliceByte(<span class="number">100</span>)</span><br><span class="line">	b.ReportAllocs()</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; b.N; i++ &#123;</span><br><span class="line">		s := *(*<span class="type">string</span>)(unsafe.Pointer(&amp;bs))</span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(s) != <span class="built_in">len</span>(bs) &#123;</span><br><span class="line">			b.Log(<span class="string">&quot;slice: &quot;</span>, <span class="built_in">len</span>(bs), <span class="string">&quot; string: &quot;</span>, <span class="built_in">len</span>(s))</span><br><span class="line">			b.Error(<span class="string">&quot;error: &quot;</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>benchmark 结果</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">go test  -run=BenchmarkSliceByteToString -bench=SliceByteToString</span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">go-demo.test</span></span><br><span class="line"></span><br><span class="line">goos: darwin</span><br><span class="line">goarch: amd64</span><br><span class="line">pkg: go-demo</span><br><span class="line">BenchmarkSliceByteToString-12          	35913873	        32.4 ns/op	     112 B/op	       1 allocs/op</span><br><span class="line">BenchmarkSliceByteToStringUnsafe-12    	1000000000	         0.253 ns/op	       0 B/op	       0 allocs/op</span><br><span class="line">PASS</span><br><span class="line">ok  	go-demo	3.796s</span><br></pre></td></tr></table></figure>
+
+<h3 id="string和-rune的相互转化"><a href="#string和-rune的相互转化" class="headerlink" title="string和[]rune的相互转化"></a>string和[]rune的相互转化</h3><p>string和rune的相互转化其实和上面类似，主要是[]rune对应的[]byte数组长度需要计算下，这里就只贴一个[]rune到string的转化了</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">BenchmarkSliceRuneToStringUnsafe</span><span class="params">(b *testing.B)</span></span> &#123;</span><br><span class="line">	bs := genSliceRune(<span class="number">100</span>)</span><br><span class="line">	s1 := <span class="type">string</span>(bs)</span><br><span class="line">	b.ReportAllocs()</span><br><span class="line">	<span class="keyword">for</span> i := <span class="number">0</span>; i &lt; b.N; i++ &#123;</span><br><span class="line">		<span class="keyword">var</span> l <span class="type">int</span></span><br><span class="line">		<span class="keyword">for</span> _, r := <span class="keyword">range</span> bs &#123;</span><br><span class="line">			l += utf8.RuneLen(r)</span><br><span class="line">		&#125;</span><br><span class="line">		s := *(*<span class="type">string</span>)(unsafe.Pointer(&amp;reflect.StringHeader&#123;</span><br><span class="line">			Data: (*(*reflect.SliceHeader)(unsafe.Pointer(&amp;bs))).Data,</span><br><span class="line">			Len:  l,</span><br><span class="line">		&#125;))</span><br><span class="line">		<span class="keyword">if</span> <span class="built_in">len</span>(s1) != <span class="built_in">len</span>(s) &#123;</span><br><span class="line">			b.Error(<span class="string">&quot;error&quot;</span>)</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="String和Slice的底层存储分析"><a href="#String和Slice的底层存储分析" class="headerlink" title="String和Slice的底层存储分析"></a>String和Slice的底层存储分析</h2><h4 id="reflect-SliceHeader-和reflect-StringHeader"><a href="#reflect-SliceHeader-和reflect-StringHeader" class="headerlink" title="reflect.SliceHeader 和reflect.StringHeader"></a>reflect.SliceHeader 和reflect.StringHeader</h4><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> StringHeader <span class="keyword">struct</span> &#123;</span><br><span class="line">	Data <span class="type">uintptr</span></span><br><span class="line">	Len  <span class="type">int</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">type</span> SliceHeader <span class="keyword">struct</span> &#123;</span><br><span class="line">	Data <span class="type">uintptr</span></span><br><span class="line">	Len  <span class="type">int</span></span><br><span class="line">	Cap  <span class="type">int</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>两者类型基本一样，Slice多了一个Cap，其实这也决定了[]byte可以直接使用指针强转成string，但是反过来却不行</p>
+<h4 id="slice的底层存储"><a href="#slice的底层存储" class="headerlink" title="slice的底层存储"></a>slice的底层存储</h4><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> slice <span class="keyword">struct</span> &#123;</span><br><span class="line">	array unsafe.Pointer</span><br><span class="line">	<span class="built_in">len</span>   <span class="type">int</span></span><br><span class="line">	<span class="built_in">cap</span>   <span class="type">int</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="以汇编的形式看下slice的底层结构"><a href="#以汇编的形式看下slice的底层结构" class="headerlink" title="以汇编的形式看下slice的底层结构"></a>以汇编的形式看下slice的底层结构</h5><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> pkg</span><br><span class="line"></span><br><span class="line"><span class="comment">// var data = make([]int, 0, 10)</span></span><br><span class="line"><span class="keyword">var</span> data = []<span class="type">int</span>&#123;<span class="number">1</span>, <span class="number">2</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">go tool compile -S pkg.go</span><br><span class="line">go.cuinfo.packagename. SDWARFINFO dupok size=0</span><br><span class="line">	0x0000 70 6b 67                                         pkg</span><br><span class="line">&quot;&quot;.data SDATA size=24</span><br><span class="line">	0x0000 00 00 00 00 00 00 00 00 02 00 00 00 00 00 00 00  ................</span><br><span class="line">	0x0010 02 00 00 00 00 00 00 00                          ........</span><br><span class="line">	rel 0+8 t=1 &quot;&quot;..stmp_0+0</span><br><span class="line">&quot;&quot;..stmp_0 SNOPTRDATA size=16</span><br><span class="line">	0x0000 01 00 00 00 00 00 00 00 02 00 00 00 00 00 00 00  ................</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>可以看到””.data 对应的是size是24（8byte的指针，len和cap各自8byte），slice里的内容是两个int对应的就是，””.stmp_0 里的内容</p>
+<p>进一步分析data对应的二进制</p>
+<ul>
+<li>data+8是<code>02 00 ...</code> ，对应len</li>
+<li>data+16是<code>02 00</code> 对应cap</li>
+</ul>
+<p>整个slice struct在内存里是紧凑分布的，所以我们可以进行指针类的强制转化，类似于c++中<code>reinterpret_cast</code></p>
+<h5 id="string的底层结构"><a href="#string的底层结构" class="headerlink" title="string的底层结构"></a>string的底层结构</h5><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> pkg</span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> testStr = <span class="string">&quot;abc&quot;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">go.cuinfo.packagename. SDWARFINFO dupok size=0</span><br><span class="line">	0x0000 70 6b 67                                         pkg</span><br><span class="line">go.string.&quot;abc&quot; SRODATA dupok size=3</span><br><span class="line">	0x0000 61 62 63                                         abc</span><br><span class="line">&quot;&quot;.testStr SDATA size=16</span><br><span class="line">	0x0000 00 00 00 00 00 00 00 00 03 00 00 00 00 00 00 00  ................</span><br><span class="line">	rel 0+8 t=1 go.string.&quot;abc&quot;+0</span><br></pre></td></tr></table></figure>
+
+<p>和上文的slice很类似，size变成了16而已</p>
+<h4 id="Fat-Pointer"><a href="#Fat-Pointer" class="headerlink" title="Fat Pointer"></a>Fat Pointer</h4><p>像slice这种结构在c中常被称为fatpointer，感兴趣的同学可以参考<a href="https://nullprogram.com/blog/2019/06/30/">Go Slices are Fat Pointers</a></p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li>介绍了golang中string，[]byte和[]rune的转化及简单的性能分析</li>
+<li>slice在golang中的底层存储</li>
+</ul>
+	  
+
+	  <div>
+  		<center>
+		  <div class="pagination">
+<ul class="pagination">
+	
+	
+	
+	
+	
+	
+		
+			
+		
+	
+		
+			
+			
+		
+	
+		
+			
+			
+			
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+	
+	
+		<li class="prev"><a href="/2021/08/14/bytebuffer%E5%AE%9E%E8%B7%B5/" class="alignleft prev"><i class="fa fa-arrow-circle-o-left"></i>prev</a></li>
+	
+	<li><a href="/"><i class="fa fa-archive"></i>Home</a></li>
+	
+		<li class="next"><a href="/2021/01/10/2020%E5%B9%B4%E5%BA%A6%E6%80%BB%E7%BB%93/" class="alignright next">next<i class="fa fa-arrow-circle-o-right"></i></a></li>
+	
+</ul>
+</div>
+
+		</center>
+	  </div>
+	  
+	</div> <!-- col-md-9/col-md-12 -->
+	
+  </div><!-- row -->
+
+	</div>
+  </div>
+  <div class="container-narrow">
+	<footer> <p>
+  &copy; 2024 skyitachi
+  
+      with help from <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> and <a href="http://getbootstrap.com/" target="_blank">Twitter Bootstrap</a>. Theme by <a href="http://github.com/wzpan/hexo-theme-wixo/">Wixo</a>.    
+</p> </footer>
+  </div> <!-- container-narrow -->
+  
+<a id="gotop" href="#">   
+  <span>▲</span> 
+</a>
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/jquery.tableofcontents.min.js"></script>
+<script src="/js/tocgenerator.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+
+</body>
+</html>
