@@ -1,86 +1,64 @@
-<!DOCTYPE html>
+<!DOCTYPE HTML>
 <html>
 <head>
   <meta charset="utf-8">
   
   <title>浅谈 javascript 作用域 | skyitachi&#39;s blog</title>
+  <meta name="author" content="skyitachi">
+  
+  <meta name="description" content="一定要有输出">
+  
+  
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="前言 本文将主要介绍javascript中作用域相关的问题，尽可能多的使用代码举例说明，尽量少涉及动态作用域相关  词法作用域(核心) javascript的作用域是词法作用域（静态作用域）, 不过像eval，with这些具有动态改变作用域的能力, 本文重点在于词法作用域  12345678910111213141516171819202122232425262728293031323334353">
-<meta property="og:type" content="article">
-<meta property="og:title" content="浅谈 javascript 作用域">
-<meta property="og:url" content="https://skyitachi.github.io/2017/04/24/scope/index.html">
-<meta property="og:site_name" content="skyitachi&#39;s blog">
-<meta property="og:description" content="前言 本文将主要介绍javascript中作用域相关的问题，尽可能多的使用代码举例说明，尽量少涉及动态作用域相关  词法作用域(核心) javascript的作用域是词法作用域（静态作用域）, 不过像eval，with这些具有动态改变作用域的能力, 本文重点在于词法作用域  12345678910111213141516171819202122232425262728293031323334353">
-<meta property="og:locale">
-<meta property="article:published_time" content="2017-04-23T16:00:00.000Z">
-<meta property="article:modified_time" content="2017-04-23T16:00:00.000Z">
-<meta property="article:author" content="skyitachi">
-<meta property="article:tag" content="javascript">
-<meta name="twitter:card" content="summary">
-  
-  
-  
-    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
-  
-  
-<link rel="stylesheet" href="/css/style.css">
+
+  <meta property="og:title" content="浅谈 javascript 作用域"/>
+  <meta property="og:site_name" content="skyitachi&#39;s blog"/>
 
   
-
-<meta name="generator" content="Hexo 7.1.1"><link rel="alternate" href="/atom.xml" title="skyitachi's blog" type="application/atom+xml">
-</head>
-
-<body>
-  <div id="container">
-    <div id="wrap">
-      <header id="header">
-  <div id="banner"></div>
-  <div id="header-outer" class="outer">
-    <div id="header-title" class="inner">
-      <h1 id="logo-wrap">
-        <a href="/" id="logo">skyitachi&#39;s blog</a>
-      </h1>
-      
-    </div>
-    <div id="header-inner" class="inner">
-      <nav id="main-nav">
-        <a id="main-nav-toggle" class="nav-icon"></a>
-        
-      </nav>
-      <nav id="sub-nav">
-        
-        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
-      </nav>
-      <div id="search-form-wrap">
-        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://skyitachi.github.io"></form>
-      </div>
-    </div>
-  </div>
-</header>
-      <div class="outer">
-        <section id="main"><article id="post-scope" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/04/24/scope/" class="article-date">
-  <time datetime="2017-04-23T16:00:00.000Z" itemprop="datePublished">2017-04-24</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="article-title" itemprop="name">
-      浅谈 javascript 作用域
-    </h1>
+    <meta property="og:image" content=""/>
   
 
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><ul>
+  
+    <link rel="alternative" href="/atom.xml" title="skyitachi&#39;s blog" type="application/atom+xml">
+  
+  
+    <link href="/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">  
+  <link rel="stylesheet" href="/css/sidenav.css" media="screen" type="text/css">  
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+
+<meta name="generator" content="Hexo 7.1.1"></head>
+
+<body id="body" data-spy="scroll" data-target=".toc">
+  <div class="container" id="container">
+	<div class="content">
+	  <div class="page-header">		
+  <h1><a class="brand" href="/">skyitachi&#39;s blog</a><span class="split"></span><span class="title">浅谈 javascript 作用域</span><span class="date" id="title-date"><i class="fa fa-clock-o"></i> 2017-04-24</span></h1>
+</div>		
+
+<div class="row page">
+  <!-- cols -->	
+  
+  
+
+  
+	<div class="col-md-12">
+	  
+
+	  <!-- content -->
+	  <h4 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h4><ul>
 <li>本文将主要介绍javascript中作用域相关的问题，尽可能多的使用代码举例说明，尽量少涉及动态作用域相关</li>
 </ul>
 <h4 id="词法作用域-核心"><a href="#词法作用域-核心" class="headerlink" title="词法作用域(核心)"></a>词法作用域(核心)</h4><blockquote>
@@ -124,62 +102,105 @@
 <li>需要区分函数声明和函数表达式</li>
 <li>尽量不要写有提升的代码（声明尽量提前）</li>
 </ul>
+	  
 
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://skyitachi.github.io/2017/04/24/scope/" data-id="cluzlhd5w000fylmxbkpph0gj" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li></ul>
+	  <div>
+  		<center>
+		  <div class="pagination">
+<ul class="pagination">
+	
+	
+	
+	
+	
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+			
+		
+	
+	
+	
+		<li class="prev"><a href="/2019/08/21/passing-value-in-cpp/" class="alignleft prev"><i class="fa fa-arrow-circle-o-left"></i>prev</a></li>
+	
+	<li><a href="/"><i class="fa fa-archive"></i>Home</a></li>
+	
+		<li class="next disabled"><a>next<i class="fa fa-arrow-circle-o-right"></i></a></li>
+	
+</ul>
+</div>
 
-    </footer>
+		</center>
+	  </div>
+	  
+	</div> <!-- col-md-9/col-md-12 -->
+	
+  </div><!-- row -->
+
+	</div>
   </div>
+  <div class="container-narrow">
+	<footer> <p>
+  &copy; 2024 skyitachi
   
-    
-<nav id="article-nav">
+      with help from <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> and <a href="http://getbootstrap.com/" target="_blank">Twitter Bootstrap</a>. Theme by <a href="http://github.com/wzpan/hexo-theme-wixo/">Wixo</a>.    
+</p> </footer>
+  </div> <!-- container-narrow -->
   
-    <a href="/2019/08/21/passing-value-in-cpp/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
-      <div class="article-nav-title">
-        
-          c++中的传参
-        
-      </div>
-    </a>
-  
-  
-</nav>
+<a id="gotop" href="#">   
+  <span>▲</span> 
+</a>
 
-  
-</article>
-
-</section>
-        
-      </div>
-      <footer id="footer">
-  
-  <div class="outer">
-    <div id="footer-info" class="inner">
-      &copy; 2024 skyitachi<br>
-      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
-    </div>
-  </div>
-</footer>
-    </div>
-    <nav id="mobile-nav">
-  
-</nav>
-    
-
-<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/jquery.tableofcontents.min.js"></script>
+<script src="/js/tocgenerator.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
 
 
 
 
-<script src="/js/script.js"></script>
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
 
 
-  </div>
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+
 </body>
 </html>

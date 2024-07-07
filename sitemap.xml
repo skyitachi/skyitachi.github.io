@@ -11,15 +11,6 @@
   </url>
   
   <url>
-    <loc>https://skyitachi.github.io/2021/08/14/bytebuffer%E5%AE%9E%E8%B7%B5/</loc>
-    
-    <lastmod>2021-08-13</lastmod>
-    
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
     <loc>https://skyitachi.github.io/2021/02/21/golang_slice/</loc>
     
     <lastmod>2021-02-21</lastmod>
@@ -74,21 +65,7 @@
 
   
   <url>
-    <loc>https://skyitachi.github.io/tags/%E6%80%BB%E7%BB%93/</loc>
-    <lastmod>2024-07-07</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://skyitachi.github.io/tags/cmu15445-btree-cpp/</loc>
-    <lastmod>2024-07-07</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://skyitachi.github.io/tags/%E5%AE%9E%E8%B7%B5/</loc>
+    <loc>https://skyitachi.github.io/tags/ES-Lucene-elasticsearch/</loc>
     <lastmod>2024-07-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -102,21 +79,7 @@
   </url>
   
   <url>
-    <loc>https://skyitachi.github.io/tags/GMTC%EF%BC%8Cjavascript%EF%BC%8C%E5%A4%A7%E5%89%8D%E7%AB%AF/</loc>
-    <lastmod>2024-07-07</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://skyitachi.github.io/tags/golang-slice/</loc>
-    <lastmod>2024-07-07</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://skyitachi.github.io/tags/immutable-js-benchmark/</loc>
     <lastmod>2024-07-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -130,13 +93,6 @@
   </url>
   
   <url>
-    <loc>https://skyitachi.github.io/tags/react-redux-best-practice/</loc>
-    <lastmod>2024-07-07</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://skyitachi.github.io/tags/javascript/</loc>
     <lastmod>2024-07-07</lastmod>
     <changefreq>weekly</changefreq>
@@ -144,28 +100,7 @@
   </url>
   
   <url>
-    <loc>https://skyitachi.github.io/tags/service-worker-push-fetch/</loc>
-    <lastmod>2024-07-07</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://skyitachi.github.io/tags/algorithm/</loc>
-    <lastmod>2024-07-07</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://skyitachi.github.io/tags/Node-js-memory-profiling-require-Module/</loc>
-    <lastmod>2024-07-07</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://skyitachi.github.io/tags/ES-Lucene-elasticsearch/</loc>
     <lastmod>2024-07-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
