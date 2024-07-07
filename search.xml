@@ -61,25 +61,6 @@
     
     
     <entry>
-      <title>BTree Leaf Node分裂问题</title>
-      <link href="/2020/12/19/btree%20leaf%20node%E7%9A%84%E5%88%86%E8%A3%82%E8%AE%B0%E5%BD%95/"/>
-      <url>/2020/12/19/btree%20leaf%20node%E7%9A%84%E5%88%86%E8%A3%82%E8%AE%B0%E5%BD%95/</url>
-      
-        <content type="html"><![CDATA[<h3 id="BTree-Leaf-Node分裂问题记录"><a href="#BTree-Leaf-Node分裂问题记录" class="headerlink" title="BTree Leaf Node分裂问题记录"></a>BTree Leaf Node分裂问题记录</h3><p>这两天在做BTree的实现的时候被一个问题困住了，就是BPlusTreeInternalPage的分裂问题</p><p>cmu15445中，BPlusTreeInternalPage 只提供了一个MoveHalfTo的操作，这在我看来是不够用的</p><ul><li>先看下bustub的api</li></ul><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">MoveAllTo</span><span class="params">(BPlusTreeInternalPage *recipient, <span class="type">const</span> KeyType &amp;middle_key, BufferPoolManager *buffer_pool_manager)</span></span>;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">MoveHalfTo</span><span class="params">(BPlusTreeInternalPage *recipient, BufferPoolManager *buffer_pool_manager)</span></span>;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">MoveFirstToEndOf</span><span class="params">(BPlusTreeInternalPage *recipient, <span class="type">const</span> KeyType &amp;middle_key,</span></span></span><br><span class="line"><span class="params"><span class="function">                        BufferPoolManager *buffer_pool_manager)</span></span>;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">MoveLastToFrontOf</span><span class="params">(BPlusTreeInternalPage *recipient, <span class="type">const</span> KeyType &amp;middle_key,</span></span></span><br><span class="line"><span class="params"><span class="function">                         BufferPoolManager *buffer_pool_manager)</span></span>;</span><br><span class="line"></span><br></pre></td></tr></table></figure><ul><li>而我在yedis中写的btree 中internalnode会把midkey提到parent上以保持btree的特性</li></ul><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">BTreeNodePage* <span class="title">index_split</span><span class="params">(BufferPoolManager*, BTreeNodePage* parent, <span class="type">int</span> child_idx)</span></span>;</span><br></pre></td></tr></table></figure><h4 id="解释下两种api的作用"><a href="#解释下两种api的作用" class="headerlink" title="解释下两种api的作用"></a>解释下两种api的作用</h4><ol><li>bustub 分裂之后</li></ol><p><img src="/home/skyitachi/lab/blog/imgs/image-20201219221942147.png" alt="image-20201219221942147"></p><p>bustub中第一个key都是无效的，所以能保证ki &gt; (k in pi)</p><p>这种分裂乍看起来第二页多了一个key，后续在这个page上insert,让我感觉有点不对劲，<strong>事实上只要忽略第一个key就好了，本例子中直接忽略k2</strong></p><ol start="2"><li><p>yedis的分裂</p><p><img src="/home/skyitachi/lab/blog/imgs/image-20201219222511014.png" alt="image-20201219222511014"></p></li></ol><p>我会主动把mid-key剔除出去（要插入到parent中），这样看起来就干净有点了，事实上两者没什么区别。</p><p>这只是一个思维上的转变，bustub的抽象更好些，yedis中的操作api都是太零散了，继续加油</p>]]></content>
-      
-      
-      
-        <tags>
-            
-            <tag> cmu15445 btree cpp </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
       <title>二分法的两种实现</title>
       <link href="/2020/04/14/%E4%BA%8C%E5%88%86%E6%B3%95%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%AE%9E%E7%8E%B0/"/>
       <url>/2020/04/14/%E4%BA%8C%E5%88%86%E6%B3%95%E7%9A%84%E4%B8%A4%E7%A7%8D%E5%AE%9E%E7%8E%B0/</url>

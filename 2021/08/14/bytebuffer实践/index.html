@@ -1,73 +1,88 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   
   <title>Java ByteBuffer实践 | skyitachi&#39;s blog</title>
-  <meta name="author" content="skyitachi">
-  
-  <meta name="description" content="一定要有输出">
-  
-  
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-
-  <meta property="og:title" content="Java ByteBuffer实践"/>
-  <meta property="og:site_name" content="skyitachi&#39;s blog"/>
-
-  
-    <meta property="og:image" content=""/>
-  
-
-  
-    <link rel="alternative" href="/atom.xml" title="skyitachi&#39;s blog" type="application/atom+xml">
-  
-  
-    <link href="/favicon.png" rel="icon">
-  
-  
-  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
-  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
-  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
-  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
-  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
-  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">  
-  <link rel="stylesheet" href="/css/sidenav.css" media="screen" type="text/css">  
-  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
-
-  <script src="/js/jquery-2.0.3.min.js"></script>
-
-  <!-- analytics -->
-  
-
-<meta name="generator" content="Hexo 7.1.1"></head>
-
-<body id="body" data-spy="scroll" data-target=".toc">
-  <div class="container" id="container">
-	<div class="content">
-	  <div class="page-header">		
-  <h1><a class="brand" href="/">skyitachi&#39;s blog</a><span class="split"></span><span class="title">Java ByteBuffer实践</span><span class="date" id="title-date"><i class="fa fa-clock-o"></i> 2021-08-14</span></h1>
-</div>		
-
-<div class="row page">
-  <!-- cols -->	
-  
-  <div class="col-xs-12 col-sm-3 col-md-3 toc"> 
-	<!-- toc -->
-<script type="text/javascript">
-		jQuery(document).ready(function() {
- 		   generateWikiTOC('.note', '.toc',  2 , 2 );
-		});
-</script>
-  </div><!-- col-md-3 -->
+  <meta name="description" content="Java bytebuffer实践前言最近在使用java做文件io相关的代码时，不可避免的使用的filechannel和bytebuffer，其中bytebuffer有些地方容易让初学者产生困扰，这里记录一下我的一些实践 类结构 基本原理我们解释下Buffer类和ByteBuffer中的字段  hb：这个就是实际的byte数组 capacity：就是这个hb实际容量，绝大部分场景下都不可改变，无法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java ByteBuffer实践">
+<meta property="og:url" content="https://skyitachi.github.io/2021/08/14/bytebuffer%E5%AE%9E%E8%B7%B5/index.html">
+<meta property="og:site_name" content="skyitachi&#39;s blog">
+<meta property="og:description" content="Java bytebuffer实践前言最近在使用java做文件io相关的代码时，不可避免的使用的filechannel和bytebuffer，其中bytebuffer有些地方容易让初学者产生困扰，这里记录一下我的一些实践 类结构 基本原理我们解释下Buffer类和ByteBuffer中的字段  hb：这个就是实际的byte数组 capacity：就是这个hb实际容量，绝大部分场景下都不可改变，无法">
+<meta property="og:locale">
+<meta property="og:image" content="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/64970207be0849109cffe25ec6028838~tplv-k3u1fbpfcp-zoom-1.image">
+<meta property="article:published_time" content="2021-08-13T16:00:00.000Z">
+<meta property="article:modified_time" content="2021-08-13T16:00:00.000Z">
+<meta property="article:author" content="skyitachi">
+<meta property="article:tag" content="实践">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/64970207be0849109cffe25ec6028838~tplv-k3u1fbpfcp-zoom-1.image">
   
   
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
 
   
-  <div class="col-xs-12 col-sm-9 col-md-9 note">
-	
 
-	  <!-- content -->
-	  <h1 id="Java-bytebuffer实践"><a href="#Java-bytebuffer实践" class="headerlink" title="Java bytebuffer实践"></a>Java bytebuffer实践</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>最近在使用java做文件io相关的代码时，不可避免的使用的filechannel和bytebuffer，其中bytebuffer有些地方容易让初学者产生困扰，这里记录一下我的一些实践</p>
+<meta name="generator" content="Hexo 7.1.1"><link rel="alternate" href="/atom.xml" title="skyitachi's blog" type="application/atom+xml">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">skyitachi&#39;s blog</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://skyitachi.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-bytebuffer实践" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2021/08/14/bytebuffer%E5%AE%9E%E8%B7%B5/" class="article-date">
+  <time datetime="2021-08-13T16:00:00.000Z" itemprop="datePublished">2021-08-14</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Java ByteBuffer实践
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="Java-bytebuffer实践"><a href="#Java-bytebuffer实践" class="headerlink" title="Java bytebuffer实践"></a>Java bytebuffer实践</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>最近在使用java做文件io相关的代码时，不可避免的使用的filechannel和bytebuffer，其中bytebuffer有些地方容易让初学者产生困扰，这里记录一下我的一些实践</p>
 <h2 id="类结构"><a href="#类结构" class="headerlink" title="类结构"></a>类结构</h2><p><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/64970207be0849109cffe25ec6028838~tplv-k3u1fbpfcp-zoom-1.image"></p>
 <h2 id="基本原理"><a href="#基本原理" class="headerlink" title="基本原理"></a>基本原理</h2><p>我们解释下Buffer类和ByteBuffer中的字段</p>
 <ul>
@@ -119,113 +134,67 @@
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
 <li>容易让人混淆的就是flip使用的时机，理解position和limit的关系之后就会简单不少</li>
 </ul>
-	  
 
-	  <div>
-  		<center>
-		  <div class="pagination">
-<ul class="pagination">
-	
-	
-	
-	
-	
-	
-		
-			
-		
-	
-		
-			
-			
-		
-	
-		
-			
-			
-			
-		
-			
-		
-	
-		
-			
-		
-	
-		
-			
-		
-	
-		
-			
-		
-	
-		
-			
-		
-	
-	
-	
-		<li class="prev"><a href="/2024/05/11/ES%E5%92%8CLucene%E4%B9%8B%E9%97%B4%E7%9A%84CRUD%E6%93%8D%E4%BD%9C%E6%98%A0%E5%B0%84/" class="alignleft prev"><i class="fa fa-arrow-circle-o-left"></i>prev</a></li>
-	
-	<li><a href="/"><i class="fa fa-archive"></i>Home</a></li>
-	
-		<li class="next"><a href="/2021/02/21/golang_slice/" class="alignright next">next<i class="fa fa-arrow-circle-o-right"></i></a></li>
-	
-</ul>
-</div>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://skyitachi.github.io/2021/08/14/bytebuffer%E5%AE%9E%E8%B7%B5/" data-id="cluzlhd5r0003ylmxd3qrdxzb" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%AE%9E%E8%B7%B5/" rel="tag">实践</a></li></ul>
 
-		</center>
-	  </div>
-	  
-	</div> <!-- col-md-9/col-md-12 -->
-	
-  </div><!-- row -->
-
-	</div>
+    </footer>
   </div>
-  <div class="container-narrow">
-	<footer> <p>
-  &copy; 2024 skyitachi
   
-      with help from <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> and <a href="http://getbootstrap.com/" target="_blank">Twitter Bootstrap</a>. Theme by <a href="http://github.com/wzpan/hexo-theme-wixo/">Wixo</a>.    
-</p> </footer>
-  </div> <!-- container-narrow -->
+    
+<nav id="article-nav">
   
-<a id="gotop" href="#">   
-  <span>▲</span> 
-</a>
+    <a href="/2024/05/11/ES%E5%92%8CLucene%E4%B9%8B%E9%97%B4%E7%9A%84CRUD%E6%93%8D%E4%BD%9C%E6%98%A0%E5%B0%84/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          ES和Lucene之间的CRUD操作映射
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/02/21/golang_slice/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Golang 中[]byte, string和[]rune的相互转化的底层原理和剖析</div>
+    </a>
+  
+</nav>
 
-<script src="/js/jquery.imagesloaded.min.js"></script>
-<script src="/js/gallery.js"></script>
-<script src="/js/bootstrap.min.js"></script>
-<script src="/js/jquery.tableofcontents.min.js"></script>
-<script src="/js/tocgenerator.min.js"></script>
-<script src="/js/main.js"></script>
-<script src="/js/search.js"></script> 
+  
+</article>
+
+</section>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2024 skyitachi<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 
 
 
 
-<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
-<script src="/fancybox/jquery.fancybox.pack.js"></script>
-<script type="text/javascript">
-(function($){
-  $('.fancybox').fancybox();
-})(jQuery);
-</script>
+<script src="/js/script.js"></script>
 
 
-
-   <script type="text/javascript">      
-     var search_path = "search.xml";
-	 if (search_path.length == 0) {
-	 	search_path = "search.xml";
-	 }
-	 var path = "/" + search_path;
-     searchFunc(path, 'local-search-input', 'local-search-result');
-   </script>
-
-
+  </div>
 </body>
 </html>
