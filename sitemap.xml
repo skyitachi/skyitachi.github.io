@@ -2,6 +2,24 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://skyitachi.github.io/2024/07/23/hnswlib%E5%92%8Cfaiss_hnsw%E7%9A%84ann-benchmarks%E7%BB%93%E6%9E%9C%E8%A7%A3%E8%AF%BB/</loc>
+    
+    <lastmod>2024-07-22</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://skyitachi.github.io/2024/07/22/HNSW%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%E5%8F%8A%E5%85%B6%E5%AE%9E%E7%8E%B0/</loc>
+    
+    <lastmod>2024-07-21</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://skyitachi.github.io/2024/05/11/ES%E5%92%8CLucene%E4%B9%8B%E9%97%B4%E7%9A%84CRUD%E6%93%8D%E4%BD%9C%E6%98%A0%E5%B0%84/</loc>
     
     <lastmod>2024-07-06</lastmod>
@@ -58,7 +76,7 @@
 
   <url>
     <loc>https://skyitachi.github.io/</loc>
-    <lastmod>2024-07-07</lastmod>
+    <lastmod>2024-07-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -66,42 +84,56 @@
   
   <url>
     <loc>https://skyitachi.github.io/tags/ES-Lucene-elasticsearch/</loc>
-    <lastmod>2024-07-07</lastmod>
+    <lastmod>2024-07-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://skyitachi.github.io/tags/dubbo-go-protobuf/</loc>
-    <lastmod>2024-07-07</lastmod>
+    <lastmod>2024-07-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://skyitachi.github.io/tags/golang-slice/</loc>
-    <lastmod>2024-07-07</lastmod>
+    <lastmod>2024-07-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://skyitachi.github.io/tags/cpp/</loc>
-    <lastmod>2024-07-07</lastmod>
+    <lastmod>2024-07-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://skyitachi.github.io/tags/javascript/</loc>
-    <lastmod>2024-07-07</lastmod>
+    <lastmod>2024-07-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://skyitachi.github.io/tags/algorithm/</loc>
-    <lastmod>2024-07-07</lastmod>
+    <lastmod>2024-07-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://skyitachi.github.io/tags/algorithm-hnsw-%E5%90%91%E9%87%8F%E6%95%B0%E6%8D%AE%E5%BA%93/</loc>
+    <lastmod>2024-07-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://skyitachi.github.io/tags/algorithm-hnsw-%E5%90%91%E9%87%8F%E6%95%B0%E6%8D%AE%E5%BA%93-faiss-hnswlib/</loc>
+    <lastmod>2024-07-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>

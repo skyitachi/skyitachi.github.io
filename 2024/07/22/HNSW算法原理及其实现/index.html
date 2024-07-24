@@ -1,0 +1,244 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>HNSW算法原理及其实现 | skyitachi&#39;s blog</title>
+  <meta name="author" content="skyitachi">
+  
+  <meta name="description" content="一定要有输出">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  <meta property="og:title" content="HNSW算法原理及其实现"/>
+  <meta property="og:site_name" content="skyitachi&#39;s blog"/>
+
+  
+    <meta property="og:image" content=""/>
+  
+
+  
+    <link rel="alternative" href="/atom.xml" title="skyitachi&#39;s blog" type="application/atom+xml">
+  
+  
+    <link href="/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">  
+  <link rel="stylesheet" href="/css/sidenav.css" media="screen" type="text/css">  
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+
+<meta name="generator" content="Hexo 7.1.1"></head>
+
+<body id="body" data-spy="scroll" data-target=".toc">
+  <div class="container" id="container">
+	<div class="content">
+	  <div class="page-header">		
+  <h1><a class="brand" href="/">skyitachi&#39;s blog</a><span class="split"></span><span class="title">HNSW算法原理及其实现</span><span class="date" id="title-date"><i class="fa fa-clock-o"></i> 2024-07-22</span></h1>
+</div>		
+
+<div class="row page">
+  <!-- cols -->	
+  
+  
+
+  
+	<div class="col-md-12">
+	  
+
+	  <!-- content -->
+	  <h1 id="主要内容"><a href="#主要内容" class="headerlink" title="主要内容"></a>主要内容</h1><ul>
+<li>介绍HNSW的算法原理</li>
+<li>介绍hnswlib和faiss中的实现，以及他们之间的区别</li>
+<li>介绍HNSW中每个参数的实际影响</li>
+</ul>
+<h1 id="HNSW的算法原理"><a href="#HNSW的算法原理" class="headerlink" title="HNSW的算法原理"></a>HNSW的算法原理</h1><h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><ol>
+<li>HNSW的算法大致原理很像skplist，区别在于hnsw每层维护的是节点直接的链接（links）,每一层都是graph的结构，相同点就是每下一层的节点数更多,维护的图也越大，到了0层维护了所有节点的链接信息</li>
+<li>无论是插入还是查找，都是从上往下找enter point（当前层和插入或者查询点最接近的点）,到了下一层时候，通过在enter point的链接的点中早出指定数量的候选集，并选出和目标点最接近的指定数量的点，建立连接</li>
+<li>插入算法还需要维护当前的enter point</li>
+</ol>
+<h2 id="具体算法"><a href="#具体算法" class="headerlink" title="具体算法"></a>具体算法</h2><p>论文中有提到一些最佳参数设置，mL &#x3D; 1&#x2F;ln(M), Mmax &#x3D; M, Mmax0 &#x3D; M * 2 可以直接带入算法中的参数，减少未知量，看起来会清晰一点，其中hnswlib的实现就是按照这组参数来的</p>
+<h3 id="SEARCH-LAYER算法"><a href="#SEARCH-LAYER算法" class="headerlink" title="SEARCH-LAYER算法"></a>SEARCH-LAYER算法</h3><p>SEARCH-LAYER(q, ep, ef, lc)</p>
+<p>Input: query element q, enter points ep, number of nearest to q elements to return ef, layer number lc</p>
+<p>Output: ef closest neighbors to q</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">v ← ep // set of visited elements</span><br><span class="line">C ← ep // set of candidates</span><br><span class="line">W ← ep // dynamic list of found nearest neighbors</span><br><span class="line"></span><br><span class="line">while │C│ &gt; 0</span><br><span class="line">  c ← extract nearest element from C to q</span><br><span class="line">  f ← get furthest element from W to q</span><br><span class="line"></span><br><span class="line">  if distance(c, q) &gt; distance(f, q)</span><br><span class="line">	break // all elements in W are evaluated</span><br><span class="line">  for each e ∈ neighbourhood(c) at layer lc // update C and W</span><br><span class="line">	if e ∉ v</span><br><span class="line">	  v ← v ⋃ e</span><br><span class="line">	f ← get furthest element from W to q</span><br><span class="line">	if distance(e, q) &lt; distance(f, q) or │W│ &lt; ef</span><br><span class="line">	  C ← C ⋃ e</span><br><span class="line">	  W ← W ⋃ e</span><br><span class="line">	  if │W│ &gt; ef</span><br><span class="line">		remove furthest element from W to q</span><br><span class="line"></span><br><span class="line">return W</span><br></pre></td></tr></table></figure>
+
+<h4 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h4><ul>
+<li>ep可以是由多个点组成的集合，也可以是单个点</li>
+</ul>
+<h3 id="插入算法"><a href="#插入算法" class="headerlink" title="插入算法"></a>插入算法</h3><p>INSERT(hnsw, q, M, Mmax, efConstruction, mL)</p>
+<p>Input: multilayer graph hnsw, new element q, number of established connections M, maximum number of connections for each element per layer Mmax, size of the dynamic candidate list efConstruction, normalization factor for level generation mL</p>
+<p>Output: update hnsw inserting element q</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">W ← ∅ // list for the currently found nearest elements</span><br><span class="line">ep ← get enter point for hnsw</span><br><span class="line">L ← level of ep // top layer for hnsw</span><br><span class="line">l ← ⌊-ln(unif(0..1))∙mL⌋ // new element’s level</span><br><span class="line"></span><br><span class="line">for lc ← L … l+1</span><br><span class="line">  W ← SEARCH-LAYER(q, ep, ef=1, lc)</span><br><span class="line">  ep ← get the nearest element from W to q</span><br><span class="line">for lc ← min(L, l) … 0</span><br><span class="line">  W ← SEARCH-LAYER(q, ep, efConstruction, lc)</span><br><span class="line">  neighbors ← SELECT-NEIGHBORS(q, W, M, lc) // alg. 3 or alg. 4 </span><br><span class="line"> 	add bidirectionall connectionts from neighbors to q at layer lc</span><br><span class="line">	for each e ∈ neighbors // shrink connections if needed</span><br><span class="line">	  eConn ← neighbourhood(e) at layer lc</span><br><span class="line">	  if │eConn│ &gt; Mmax // shrink connections of e</span><br><span class="line">		if lc = 0 then Mmax = Mmax0</span><br><span class="line">		eNewConn ← SELECT-NEIGHBORS(e, eConn, Mmax, lc)</span><br><span class="line">	  // alg. 3 or alg. 4</span><br><span class="line">	  set neighbourhood(e) at layer lc to eNewConn</span><br><span class="line">	ep ← W</span><br><span class="line"></span><br><span class="line">if l &gt; L</span><br><span class="line">  set enter point for hnsw to q</span><br></pre></td></tr></table></figure>
+
+<h4 id="entry-point的更新"><a href="#entry-point的更新" class="headerlink" title="entry point的更新"></a>entry point的更新</h4><ul>
+<li>新插入的节点最终会变为全局的enter pointer</li>
+<li>level0会维护2*M的链接</li>
+</ul>
+<h3 id="搜索算法"><a href="#搜索算法" class="headerlink" title="搜索算法"></a>搜索算法</h3><p>K-NN-SEARCH(hnsw, q, K, ef)</p>
+<p>Input: multilayer graph hnsw, query element q, number of nearest neighbors to return K, size of the dynamic candidate list ef</p>
+<p>Output: K nearest elements to q</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">W ← ∅ // set for the current nearest elements</span><br><span class="line">ep ← get enter point for hnsw</span><br><span class="line">L ← level of ep // top layer for hnsw</span><br><span class="line">for lc ← L … 1</span><br><span class="line">  W ← SEARCH-LAYER(q, ep, ef=1, lc)</span><br><span class="line">  ep ← get nearest element from W to q</span><br><span class="line"></span><br><span class="line">W ← SEARCH-LAYER(q, ep, ef, lc =0)</span><br><span class="line">return K nearest elements from W to q</span><br></pre></td></tr></table></figure>
+
+<h4 id="说明-1"><a href="#说明-1" class="headerlink" title="说明"></a>说明</h4><ul>
+<li><p>搜索过程从L-&gt;1 层每层只搜和query最近的enter point, 这就要求数据集是要有一定结构的，这样才能保证在最后一层搜索的时候质量不至于太差，如果是随机的数据集可能结果会不太好</p>
+</li>
+<li><p>efSearch要大于K才行(faiss里会保证efSearch最少是k)</p>
+</li>
+</ul>
+<h3 id="SELECT-NEIGHBORS-算法"><a href="#SELECT-NEIGHBORS-算法" class="headerlink" title="SELECT-NEIGHBORS 算法"></a>SELECT-NEIGHBORS 算法</h3><h4 id="简单算法"><a href="#简单算法" class="headerlink" title="简单算法"></a>简单算法</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">SELECT-NEIGHBORS-SIMPLE(q, C, M)</span><br><span class="line">Input: base element q, candidate elements C, number of neighbors to return M</span><br><span class="line"></span><br><span class="line">Output: M nearest elements to q</span><br><span class="line">return M nearest elements from C to q</span><br><span class="line">// 实际的实现就是一个优先权队列</span><br></pre></td></tr></table></figure>
+
+<h4 id="启发式方法"><a href="#启发式方法" class="headerlink" title="启发式方法"></a>启发式方法</h4><p>SELECT-NEIGHBORS-HEURISTIC(q, C, M, lc, extendCandidates, keepPrunedConnections)</p>
+<p>Input: base element q, candidate elements C, number of neighbors to return M, layer number lc, flag indicating whether or not to extend<br>candidate list extendCandidates, flag indicating whether or not to add discarded elements keepPrunedConnections</p>
+<p>Output: M elements selected by the heuristic</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">R ← ∅</span><br><span class="line">W ← C // working queue for the candidates</span><br><span class="line">if extendCandidates // extend candidates by their neighbors</span><br><span class="line">  for each e ∈ C</span><br><span class="line">    for each eadj ∈ neighbourhood(e) at layer lc</span><br><span class="line">      if eadj ∉ W</span><br><span class="line">	    W ← W ⋃ eadj</span><br><span class="line"></span><br><span class="line">Wd ← ∅ // queue for the discarded candidates</span><br><span class="line">while │W│ &gt; 0 and │R│&lt; M</span><br><span class="line">  e ← extract nearest element from W to q</span><br><span class="line">    if e is closer to q compared to any element from R</span><br><span class="line">	  R ← R ⋃ e</span><br><span class="line">	else</span><br><span class="line">	  Wd ← Wd ⋃ e</span><br><span class="line"></span><br><span class="line">if keepPrunedConnections // add some of the discarded </span><br><span class="line">  // connections from Wd</span><br><span class="line">  while │Wd│&gt; 0 and │R│&lt; M</span><br><span class="line">    R ← R ⋃ extract nearest element from Wd to q</span><br><span class="line"></span><br><span class="line">return R</span><br></pre></td></tr></table></figure>
+<h4 id="说明-2"><a href="#说明-2" class="headerlink" title="说明"></a>说明</h4><ul>
+<li>第一种方法只从candidates选择，第二种方法从candidates里的邻接的点里选择（选择范围更大, 可能受数据集的影响较小）</li>
+<li>hnswlib和faiss_hnsw都相当于用了第一种方法</li>
+<li>启发式方法适合中维数据和多clustering的数据( mid-dimensional data and for the case of highly clustered data)</li>
+</ul>
+<h1 id="HNSW每个参数实际的影响"><a href="#HNSW每个参数实际的影响" class="headerlink" title="HNSW每个参数实际的影响"></a>HNSW每个参数实际的影响</h1><ul>
+<li>dim: 数据维度，dim 越大计算量越大</li>
+<li>max_elements: 数据总量</li>
+<li>M: 每个向量的最大链接数, M越大占用的内存越大, 构建和搜索也是越慢（精度更高） </li>
+<li>efConstruction: 每个向量构建或者搜索时的候选集大小，efConstruction越大，构建和搜索速度越慢 (不会影响内存消耗)</li>
+</ul>
+<h2 id="M-应该如何选择"><a href="#M-应该如何选择" class="headerlink" title="M 应该如何选择"></a>M 应该如何选择</h2><ul>
+<li>论文中指出<code>A reasonable range of M is from 5 to 48</code></li>
+</ul>
+<h2 id="efConstruction"><a href="#efConstruction" class="headerlink" title="efConstruction"></a>efConstruction</h2><ul>
+<li>efConstruction 对speed&#x2F;index quality有显著影响</li>
+<li>论文中指出10M的sift dataset，用efConstruction&#x3D;100就能达到不错的召回率(0.95), 适用多线程并发构建的话速度也不错 </li>
+<li>进一步提升efConstruction带来的收益并不明显，反而会较大影响构建速度</li>
+</ul>
+<h2 id="efSearch"><a href="#efSearch" class="headerlink" title="efSearch"></a>efSearch</h2><ul>
+<li>搜索时候用到ef值，hnswlib和faiss_hnsw都可以单独设置</li>
+<li>合适的efSearch能保证recall</li>
+<li>efSearch也不是越高越好，边际效应越来越小，也会影响到搜索速度</li>
+</ul>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ul>
+<li>关于详细的性能数据可以参考论文</li>
+<li>测试性能的时候关键指标是 <code>Distance Computations</code>, <code>Query Time</code></li>
+<li>可以使用PQ（乘积量化）的方式优化memory</li>
+</ul>
+	  
+
+	  <div>
+  		<center>
+		  <div class="pagination">
+<ul class="pagination">
+	
+	
+	
+	
+	
+	
+		
+			
+		
+	
+		
+			
+			
+		
+	
+		
+			
+			
+			
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+		
+			
+		
+	
+	
+	
+		<li class="prev"><a href="/2024/07/23/hnswlib%E5%92%8Cfaiss_hnsw%E7%9A%84ann-benchmarks%E7%BB%93%E6%9E%9C%E8%A7%A3%E8%AF%BB/" class="alignleft prev"><i class="fa fa-arrow-circle-o-left"></i>prev</a></li>
+	
+	<li><a href="/"><i class="fa fa-archive"></i>Home</a></li>
+	
+		<li class="next"><a href="/2024/05/11/ES%E5%92%8CLucene%E4%B9%8B%E9%97%B4%E7%9A%84CRUD%E6%93%8D%E4%BD%9C%E6%98%A0%E5%B0%84/" class="alignright next">next<i class="fa fa-arrow-circle-o-right"></i></a></li>
+	
+</ul>
+</div>
+
+		</center>
+	  </div>
+	  
+	</div> <!-- col-md-9/col-md-12 -->
+	
+  </div><!-- row -->
+
+	</div>
+  </div>
+  <div class="container-narrow">
+	<footer> <p>
+  &copy; 2024 skyitachi
+  
+      with help from <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> and <a href="http://getbootstrap.com/" target="_blank">Twitter Bootstrap</a>. Theme by <a href="http://github.com/wzpan/hexo-theme-wixo/">Wixo</a>.    
+</p> </footer>
+  </div> <!-- container-narrow -->
+  
+<a id="gotop" href="#">   
+  <span>▲</span> 
+</a>
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/jquery.tableofcontents.min.js"></script>
+<script src="/js/tocgenerator.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+   <script type="text/javascript">      
+     var search_path = "search.xml";
+	 if (search_path.length == 0) {
+	 	search_path = "search.xml";
+	 }
+	 var path = "/" + search_path;
+     searchFunc(path, 'local-search-input', 'local-search-result');
+   </script>
+
+
+</body>
+</html>
