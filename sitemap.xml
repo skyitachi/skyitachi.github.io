@@ -11,6 +11,15 @@
   </url>
   
   <url>
+    <loc>https://skyitachi.github.io/2024/08/04/IVFPQ%E7%9A%84%E5%8E%9F%E7%90%86/</loc>
+    
+    <lastmod>2024-08-03</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://skyitachi.github.io/2024/07/26/java%E4%B8%AD%E7%9A%84%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/</loc>
     
     <lastmod>2024-07-25</lastmod>
@@ -158,6 +167,13 @@
   
   <url>
     <loc>https://skyitachi.github.io/tags/java-Exception-CompletableFuture-ThreadPool-batch/</loc>
+    <lastmod>2024-08-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://skyitachi.github.io/tags/algorithm-%E5%90%91%E9%87%8F%E6%95%B0%E6%8D%AE%E5%BA%93-vector-ann/</loc>
     <lastmod>2024-08-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
