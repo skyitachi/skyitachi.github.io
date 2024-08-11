@@ -2,6 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://skyitachi.github.io/2024/08/08/Lucene%E4%B8%AD%E7%9A%84hnsw%E7%B4%A2%E5%BC%95%E6%98%AF%E5%A6%82%E4%BD%95%E5%86%99%E5%85%A5%E7%9A%84/</loc>
+    
+    <lastmod>2024-08-07</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://skyitachi.github.io/2024/08/04/Lucene%E4%B8%ADTerm%E7%9B%B8%E5%85%B3%E7%9A%84%E5%80%92%E6%8E%92%E6%96%87%E4%BB%B6%E6%98%AF%E5%A6%82%E4%BD%95%E7%94%9F%E6%88%90%E7%9A%84/</loc>
     
     <lastmod>2024-08-03</lastmod>
@@ -103,7 +112,7 @@
 
   <url>
     <loc>https://skyitachi.github.io/</loc>
-    <lastmod>2024-08-04</lastmod>
+    <lastmod>2024-08-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -111,70 +120,77 @@
   
   <url>
     <loc>https://skyitachi.github.io/tags/ES-Lucene-elasticsearch/</loc>
-    <lastmod>2024-08-04</lastmod>
+    <lastmod>2024-08-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://skyitachi.github.io/tags/dubbo-go-protobuf/</loc>
-    <lastmod>2024-08-04</lastmod>
+    <lastmod>2024-08-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://skyitachi.github.io/tags/golang-slice/</loc>
-    <lastmod>2024-08-04</lastmod>
+    <lastmod>2024-08-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://skyitachi.github.io/tags/cpp/</loc>
-    <lastmod>2024-08-04</lastmod>
+    <lastmod>2024-08-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://skyitachi.github.io/tags/javascript/</loc>
-    <lastmod>2024-08-04</lastmod>
+    <lastmod>2024-08-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://skyitachi.github.io/tags/algorithm/</loc>
-    <lastmod>2024-08-04</lastmod>
+    <lastmod>2024-08-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://skyitachi.github.io/tags/algorithm-hnsw-%E5%90%91%E9%87%8F%E6%95%B0%E6%8D%AE%E5%BA%93/</loc>
-    <lastmod>2024-08-04</lastmod>
+    <lastmod>2024-08-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://skyitachi.github.io/tags/algorithm-hnsw-%E5%90%91%E9%87%8F%E6%95%B0%E6%8D%AE%E5%BA%93-faiss-hnswlib/</loc>
-    <lastmod>2024-08-04</lastmod>
+    <lastmod>2024-08-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://skyitachi.github.io/tags/java-Exception-CompletableFuture-ThreadPool-batch/</loc>
-    <lastmod>2024-08-04</lastmod>
+    <lastmod>2024-08-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://skyitachi.github.io/tags/algorithm-%E5%90%91%E9%87%8F%E6%95%B0%E6%8D%AE%E5%BA%93-vector-ann/</loc>
-    <lastmod>2024-08-04</lastmod>
+    <lastmod>2024-08-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://skyitachi.github.io/tags/algorithm-hnsw-%E5%90%91%E9%87%8F%E6%95%B0%E6%8D%AE%E5%BA%93-Lucene-Indexing/</loc>
+    <lastmod>2024-08-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
